@@ -29,3 +29,47 @@ export function projectWorkerPort(root: string): number {
   const digest = createHash('sha1').update(resolve(root)).digest();
   return PORT_BASE + (digest.readUInt32BE(0) % PORT_RANGE);
 }
+
+import { execFileSync } from 'node:child_process';
+
+/**
+ * Resolve the project root for a cwd: the git toplevel if the cwd is inside a
+ * repo, otherwise the cwd itself. Always returned as an absolute, normalized
+ * path (`resolve`) so downstream hashing/joining is platform-stable (git emits
+ * forward slashes on Windows).
+ */
+export function resolveProjectRoot(cwd: string): string {
+  try {
+    const out = execFileSync('git', ['rev-parse', '--show-toplevel'], {
+      cwd,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      windowsHide: true,
+    }).trim();
+    return out ? resolve(out) : resolve(cwd);
+  } catch {
+    return resolve(cwd);
+  }
+}
+
+export interface ProjectRuntime {
+  /** Absolute project root (git toplevel or cwd). */
+  root: string;
+  /** `<root>/.mem/.runtime` — git-ignored per-project runtime data. */
+  dataDir: string;
+  /** Deterministic per-project worker port. */
+  port: number;
+  /** Directory-name label. */
+  slug: string;
+}
+
+/** Map a cwd to its full project-local runtime descriptor. */
+export function resolveProjectRuntime(cwd: string): ProjectRuntime {
+  const root = resolveProjectRoot(cwd);
+  return {
+    root,
+    dataDir: projectDataDir(root),
+    port: projectWorkerPort(root),
+    slug: projectSlug(root),
+  };
+}

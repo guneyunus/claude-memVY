@@ -38,3 +38,49 @@ describe('project-root pure helpers', () => {
     expect(PORT_BASE + PORT_RANGE).toBeLessThanOrEqual(37950);
   });
 });
+
+import { mkdtempSync, mkdirSync, rmSync, realpathSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { execFileSync } from 'node:child_process';
+import {
+  resolveProjectRoot,
+  resolveProjectRuntime,
+} from '../../src/engram/project-root.js';
+
+describe('resolveProjectRoot (git)', () => {
+  it('returns the git toplevel from the repo root and from a subdir', () => {
+    const dir = realpathSync(mkdtempSync(join(tmpdir(), 'engram-git-')));
+    try {
+      execFileSync('git', ['init', '-q'], { cwd: dir, windowsHide: true });
+      const sub = join(dir, 'src', 'deep');
+      mkdirSync(sub, { recursive: true });
+      expect(resolveProjectRoot(dir)).toBe(resolve(dir));
+      expect(resolveProjectRoot(sub)).toBe(resolve(dir)); // finds toplevel from deep
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('falls back to the resolved cwd when git cannot resolve the path', () => {
+    // A path that does not exist on disk: `git rev-parse` throws (bad cwd),
+    // the resolver catches it and returns resolve(cwd). Deterministic
+    // regardless of whether tmpdir happens to sit inside a git repo.
+    const ghost = join(tmpdir(), 'engram-nogit-does-not-exist-zzz');
+    expect(resolveProjectRoot(ghost)).toBe(resolve(ghost));
+  });
+});
+
+describe('resolveProjectRuntime', () => {
+  it('composes root, dataDir, port, slug', () => {
+    const dir = realpathSync(mkdtempSync(join(tmpdir(), 'engram-rt-')));
+    try {
+      const rt = resolveProjectRuntime(dir);
+      expect(rt.root).toBe(resolve(dir));
+      expect(rt.dataDir).toBe(join(resolve(dir), '.mem', '.runtime'));
+      expect(rt.port).toBe(projectWorkerPort(resolve(dir)));
+      expect(rt.slug).toBe(projectSlug(resolve(dir)));
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
