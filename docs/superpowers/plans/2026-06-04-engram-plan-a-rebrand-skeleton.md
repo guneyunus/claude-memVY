@@ -130,12 +130,19 @@ const PLAN = [
     ],
   },
   {
+    // NOTE: build-hooks.js is ALSO a canonical generator — it emits plugin/.mcp.json's
+    // shell string (incl. the not-found message) AND hard-codes plugin/package.json's
+    // name+description. Those generator strings must be rebranded too, or `npm run build`
+    // regenerates the old names back over the file edits.
     file: 'scripts/build-hooks.js',
     edits: [
       { from: "['mcp-search']", to: "['engram']", all: true },
       { from: '(mcp-search). It no longer matches', to: '(engram). It no longer matches' },
       { from: '.mcp.json mcp-search launcher must include Codex', to: '.mcp.json engram launcher must include Codex' },
       { from: '.mcp.json mcp-search launcher must include Claude', to: '.mcp.json engram launcher must include Claude' },
+      { from: "notFoundMessage: 'claude-mem: mcp server not found',", to: "notFoundMessage: 'engram: mcp server not found'," },
+      { from: "      name: 'claude-mem-plugin',", to: "      name: 'engram-plugin'," },
+      { from: "      description: 'Runtime dependencies for claude-mem bundled hooks',", to: "      description: 'Runtime dependencies for engram bundled hooks'," },
     ],
   },
   {
@@ -226,7 +233,7 @@ Run:
 ```bash
 node scripts/rebrand.mjs
 ```
-Expected: `rebrand: 20 applied, 0 already-applied, 0 missing` then `✓ rebrand complete`. Exit code 0.
+Expected: `rebrand: 23 applied, 0 already-applied, 0 missing` then `✓ rebrand complete`. Exit code 0. (23 edits — `build-hooks.js` carries 7 of them because it is also a generator.)
 
 (If it prints any `MISSING` lines and exits 1, an upstream change altered a `from` string — update that entry in `scripts/rebrand.mjs` to the new exact text and re-run. Do NOT proceed until it is clean.)
 
@@ -236,7 +243,7 @@ Run:
 ```bash
 node scripts/rebrand.mjs
 ```
-Expected: `rebrand: 0 applied, 20 already-applied, 0 missing` and exit 0. (No file should change on the second run.)
+Expected: `rebrand: 0 applied, 23 already-applied, 0 missing` and exit 0. (No file should change on the second run.)
 
 - [ ] **Step 3: Spot-check the authoritative edits**
 
@@ -386,5 +393,5 @@ Expected: `nothing to commit, working tree clean`.
 
 - **Spec coverage:** Implements spec §8 (minimum rebrand surface: package, plugin, data dir, MCP name) and §9 (upstream remote + re-runnable rebrand script). Config split (§4.5), exporter/importer/sync (§4.2–4.4), and project-local runtime (§4.1) are Plans B–D — intentionally not here.
 - **No placeholders:** every edit is an exact string; every step has a runnable command + expected output.
-- **Consistency:** the edit count (20 edits across 10 files) matches the PLAN array; `QUALIFIED_PREFIX` updated to `mcp__plugin_engram_engram__` consistent with plugin name `engram` + server key `engram`.
+- **Consistency:** the edit count (23 edits across 11 files) matches the PLAN array; `QUALIFIED_PREFIX` updated to `mcp__plugin_engram_engram__` consistent with plugin name `engram` + server key `engram`.
 - **Key correctness guard:** plugin manifests are NOT hand-edited because `sync-plugin-manifests.js` regenerates them from `package.json` on build — so only `package.json` is the source for those names.
