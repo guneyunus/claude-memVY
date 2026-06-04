@@ -171,6 +171,22 @@ const PLAN = [
       { from: "'.claude-mem', '.open-next', '.turbo'", to: "'.engram', '.mem', '.open-next', '.turbo'", all: true },
     ],
   },
+  // Infra files build the db path as path.join(dataDir, 'claude-mem.db') instead of
+  // importing paths.database()/DB_PATH, so they hardcode the filename. Dormant for Plan A
+  // (~/.engram), but a runtime miss once Plan B points DATA_DIR at .mem/.runtime/.
+  // (Added after Plan A's code-quality review surfaced it.)
+  {
+    file: 'src/services/infrastructure/WorktreeAdoption.ts',
+    edits: [ { from: "'claude-mem.db'", to: "'engram.db'", all: true } ],
+  },
+  {
+    file: 'src/services/infrastructure/ProcessManager.ts',
+    edits: [ { from: "'claude-mem.db'", to: "'engram.db'" } ],
+  },
+  {
+    file: 'src/services/infrastructure/CleanupV12_4_3.ts',
+    edits: [ { from: "'claude-mem.db'", to: "'engram.db'" } ],
+  },
   {
     file: 'tests/servers/mcp-server-name-safety.test.ts',
     edits: [
@@ -233,7 +249,7 @@ Run:
 ```bash
 node scripts/rebrand.mjs
 ```
-Expected: `rebrand: 23 applied, 0 already-applied, 0 missing` then `✓ rebrand complete`. Exit code 0. (23 edits — `build-hooks.js` carries 7 of them because it is also a generator.)
+Expected: `rebrand: 26 applied, 0 already-applied, 0 missing` then `✓ rebrand complete`. Exit code 0. (26 edits across 13 target files — `build-hooks.js` carries 7 because it is also a generator; 3 infra files carry the db-filename edit added after code review.)
 
 (If it prints any `MISSING` lines and exits 1, an upstream change altered a `from` string — update that entry in `scripts/rebrand.mjs` to the new exact text and re-run. Do NOT proceed until it is clean.)
 
@@ -243,7 +259,7 @@ Run:
 ```bash
 node scripts/rebrand.mjs
 ```
-Expected: `rebrand: 0 applied, 23 already-applied, 0 missing` and exit 0. (No file should change on the second run.)
+Expected: `rebrand: 0 applied, 26 already-applied, 0 missing` and exit 0. (No file should change on the second run.)
 
 - [ ] **Step 3: Spot-check the authoritative edits**
 
@@ -393,5 +409,5 @@ Expected: `nothing to commit, working tree clean`.
 
 - **Spec coverage:** Implements spec §8 (minimum rebrand surface: package, plugin, data dir, MCP name) and §9 (upstream remote + re-runnable rebrand script). Config split (§4.5), exporter/importer/sync (§4.2–4.4), and project-local runtime (§4.1) are Plans B–D — intentionally not here.
 - **No placeholders:** every edit is an exact string; every step has a runnable command + expected output.
-- **Consistency:** the edit count (23 edits across 11 files) matches the PLAN array; `QUALIFIED_PREFIX` updated to `mcp__plugin_engram_engram__` consistent with plugin name `engram` + server key `engram`.
+- **Consistency:** the edit count (26 edits across 13 target files, + `scripts/rebrand.mjs` itself) matches the PLAN array; `QUALIFIED_PREFIX` updated to `mcp__plugin_engram_engram__` consistent with plugin name `engram` + server key `engram`.
 - **Key correctness guard:** plugin manifests are NOT hand-edited because `sync-plugin-manifests.js` regenerates them from `package.json` on build — so only `package.json` is the source for those names.
