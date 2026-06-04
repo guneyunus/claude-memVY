@@ -147,7 +147,7 @@ export async function adoptMergedWorktrees(opts: {
     return result;
   }
 
-  const dbPath = path.join(dataDirectory, 'claude-mem.db');
+  const dbPath = path.join(dataDirectory, 'engram.db');
   if (!existsSync(dbPath)) {
     logger.debug('SYSTEM', 'Worktree adoption skipped (no DB yet)', { dbPath });
     return result;
@@ -317,7 +317,7 @@ export async function adoptMergedWorktreesForAllKnownRepos(opts: {
   dryRun?: boolean;
 } = {}): Promise<AdoptionResult[]> {
   const dataDirectory = opts.dataDirectory ?? DEFAULT_DATA_DIR;
-  const dbPath = path.join(dataDirectory, 'claude-mem.db');
+  const dbPath = path.join(dataDirectory, 'engram.db');
   const results: AdoptionResult[] = [];
 
   if (!existsSync(dbPath)) {

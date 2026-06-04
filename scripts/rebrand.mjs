@@ -95,6 +95,28 @@ const PLAN = [
       { from: "'.claude-mem', '.open-next', '.turbo'", to: "'.engram', '.mem', '.open-next', '.turbo'", all: true },
     ],
   },
+  // These infra files build the db path themselves (path.join(dataDir, 'claude-mem.db'))
+  // instead of importing paths.database()/DB_PATH, so they hardcode the filename. Without
+  // these edits they look for 'claude-mem.db' even after the rebrand — dormant for Plan A
+  // (default ~/.engram), but a runtime miss once Plan B points DATA_DIR at .mem/.runtime/.
+  {
+    file: 'src/services/infrastructure/WorktreeAdoption.ts',
+    edits: [
+      { from: "'claude-mem.db'", to: "'engram.db'", all: true },
+    ],
+  },
+  {
+    file: 'src/services/infrastructure/ProcessManager.ts',
+    edits: [
+      { from: "'claude-mem.db'", to: "'engram.db'" },
+    ],
+  },
+  {
+    file: 'src/services/infrastructure/CleanupV12_4_3.ts',
+    edits: [
+      { from: "'claude-mem.db'", to: "'engram.db'" },
+    ],
+  },
   {
     file: 'tests/servers/mcp-server-name-safety.test.ts',
     edits: [
