@@ -62,6 +62,11 @@ const PLAN = [
       { from: '(mcp-search). It no longer matches', to: '(engram). It no longer matches' },
       { from: '.mcp.json mcp-search launcher must include Codex', to: '.mcp.json engram launcher must include Codex' },
       { from: '.mcp.json mcp-search launcher must include Claude', to: '.mcp.json engram launcher must include Claude' },
+      // The canonical shell-template generator must emit the same notFoundMessage as plugin/.mcp.json.
+      { from: "notFoundMessage: 'claude-mem: mcp server not found',", to: "notFoundMessage: 'engram: mcp server not found'," },
+      // build-hooks.js hard-codes plugin/package.json content; keep in sync with the renamed package.
+      { from: "      name: 'claude-mem-plugin',", to: "      name: 'engram-plugin'," },
+      { from: "      description: 'Runtime dependencies for claude-mem bundled hooks',", to: "      description: 'Runtime dependencies for engram bundled hooks'," },
     ],
   },
   {

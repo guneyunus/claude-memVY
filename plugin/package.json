@@ -1,8 +1,8 @@
 {
-  "name": "claude-mem-plugin",
+  "name": "engram-plugin",
   "version": "13.4.0",
   "private": true,
-  "description": "Runtime dependencies for claude-mem bundled hooks",
+  "description": "Runtime dependencies for engram bundled hooks",
   "type": "module",
   "dependencies": {
     "zod": "^4.3.6",

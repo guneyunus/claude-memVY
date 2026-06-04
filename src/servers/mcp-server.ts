@@ -888,7 +888,7 @@ NEVER fetch full details without filtering first. 10x token savings.`,
 
 const server = new Server(
   {
-    name: 'claude-mem',
+    name: 'engram',
     version: packageVersion,
   },
   {

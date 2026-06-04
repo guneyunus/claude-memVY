@@ -1,7 +1,7 @@
 {
-  "name": "claude-mem",
+  "name": "engram",
   "version": "13.4.0",
-  "description": "Memory compression system for Claude Code - persist context across sessions",
+  "description": "Engram: project-local, git-native memory for Claude Code",
   "keywords": [
     "claude",
     "claude-code",
@@ -27,7 +27,7 @@
   },
   "type": "module",
   "bin": {
-    "claude-mem": "./dist/npx-cli/index.js"
+    "engram": "./dist/npx-cli/index.js"
   },
   "exports": {
     ".": {

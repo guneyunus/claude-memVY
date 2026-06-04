@@ -9,10 +9,10 @@
   },
   "plugins": [
     {
-      "name": "claude-mem",
+      "name": "engram",
       "version": "13.4.0",
       "source": "./plugin",
-      "description": "Persistent memory system for Claude Code - context compression across sessions"
+      "description": "Engram: project-local, git-native memory for Claude Code"
     }
   ]
 }

@@ -20,7 +20,7 @@ export function resolveDataDir(): string {
     return process.env.CLAUDE_MEM_DATA_DIR;
   }
 
-  const defaultDataDir = join(homedir(), '.claude-mem');
+  const defaultDataDir = join(homedir(), '.engram');
   const settingsPath = join(defaultDataDir, 'settings.json');
   try {
     if (existsSync(settingsPath)) {
@@ -48,7 +48,7 @@ export const TRASH_DIR = join(DATA_DIR, 'trash');
 export const BACKUPS_DIR = join(DATA_DIR, 'backups');
 export const MODES_DIR = join(DATA_DIR, 'modes');
 export const USER_SETTINGS_PATH = join(DATA_DIR, 'settings.json');
-export const DB_PATH = join(DATA_DIR, 'claude-mem.db');
+export const DB_PATH = join(DATA_DIR, 'engram.db');
 export const VECTOR_DB_DIR = join(DATA_DIR, 'vector-db');
 
 export const OBSERVER_SESSIONS_DIR = join(DATA_DIR, 'observer-sessions');
@@ -133,7 +133,7 @@ export const paths = {
   serverBetaPort: () => join(DATA_DIR, '.server-beta.port'),
   serverBetaRuntime: () => join(DATA_DIR, '.server-beta.runtime.json'),
   settings: () => join(DATA_DIR, 'settings.json'),
-  database: () => join(DATA_DIR, 'claude-mem.db'),
+  database: () => join(DATA_DIR, 'engram.db'),
   chroma: () => join(DATA_DIR, 'chroma'),
   combinedCerts: () => join(DATA_DIR, 'combined_certs.pem'),
   transcriptsConfig: () => join(DATA_DIR, 'transcript-watch.json'),
