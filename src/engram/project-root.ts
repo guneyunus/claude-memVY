@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { basename, join, resolve } from 'node:path';
 
 /**
@@ -26,11 +27,10 @@ export function projectSlug(root: string): string {
  * machine always maps to the same port.
  */
 export function projectWorkerPort(root: string): number {
+  // resolve() here so callers may pass a raw path; idempotent on absolute paths.
   const digest = createHash('sha1').update(resolve(root)).digest();
   return PORT_BASE + (digest.readUInt32BE(0) % PORT_RANGE);
 }
-
-import { execFileSync } from 'node:child_process';
 
 /**
  * Resolve the project root for a cwd: the git toplevel if the cwd is inside a
@@ -45,6 +45,7 @@ export function resolveProjectRoot(cwd: string): string {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
       windowsHide: true,
+      timeout: 5000, // bound worst-case stall on slow/network FS; catch → resolve(cwd)
     }).trim();
     return out ? resolve(out) : resolve(cwd);
   } catch {
@@ -57,7 +58,11 @@ export interface ProjectRuntime {
   root: string;
   /** `<root>/.mem/.runtime` — git-ignored per-project runtime data. */
   dataDir: string;
-  /** Deterministic per-project worker port. */
+  /**
+   * Candidate per-project worker port (deterministic hash of the root).
+   * Plan B2 may increment on bind collision and persist the actual chosen port
+   * to `<dataDir>/worker.port`; read that for the authoritative bound port.
+   */
   port: number;
   /** Directory-name label. */
   slug: string;

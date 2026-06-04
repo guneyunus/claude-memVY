@@ -68,6 +68,23 @@ describe('resolveProjectRoot (git)', () => {
     const ghost = join(tmpdir(), 'engram-nogit-does-not-exist-zzz');
     expect(resolveProjectRoot(ghost)).toBe(resolve(ghost));
   });
+
+  it('falls back for an existing dir that is not a git repo (git exit 128)', () => {
+    // The realistic case: an existing directory with no repo above it. git
+    // rev-parse exits 128 → execFileSync throws → fallback. GIT_CEILING_DIRECTORIES
+    // stops git from discovering an ancestor repo, so this is deterministic even
+    // if tmpdir sits inside one.
+    const dir = realpathSync(mkdtempSync(join(tmpdir(), 'engram-bare-')));
+    const prevCeiling = process.env.GIT_CEILING_DIRECTORIES;
+    process.env.GIT_CEILING_DIRECTORIES = realpathSync(tmpdir());
+    try {
+      expect(resolveProjectRoot(dir)).toBe(resolve(dir));
+    } finally {
+      if (prevCeiling === undefined) delete process.env.GIT_CEILING_DIRECTORIES;
+      else process.env.GIT_CEILING_DIRECTORIES = prevCeiling;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('resolveProjectRuntime', () => {
