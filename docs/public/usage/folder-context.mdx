@@ -13,7 +13,7 @@ This feature is **disabled by default**. Enable it via settings if you want auto
 
 ## How It Works
 
-When you work with Claude Code in a project, claude-mem tracks which files are read and modified. After each observation is saved, it automatically:
+When you work with Claude Code in a project, Engram tracks which files are read and modified. After each observation is saved, it automatically:
 
 1. Identifies unique folder paths from touched files
 2. Queries recent observations relevant to each folder
@@ -85,7 +85,7 @@ Git submodules (which have a `.git` *file* instead of directory) are correctly d
 
 To enable folder CLAUDE.md generation, edit your settings file:
 
-**1. Open `~/.claude-mem/settings.json`**
+**1. Open `~/.engram/settings.json`**
 
 **2. Add or update this setting:**
 ```json
@@ -230,7 +230,7 @@ This means observations about shared code are visible regardless of which worktr
 
 ### How It Works
 
-1. When generating context, claude-mem detects if your project is a worktree
+1. When generating context, Engram detects if your project is a worktree
 2. It identifies the parent repository automatically
 3. Timeline queries include both locations
 4. Results are interleaved chronologically

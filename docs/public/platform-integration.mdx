@@ -1,11 +1,11 @@
 ---
 title: Platform Integration Guide
-description: Complete reference for integrating claude-mem worker service into VSCode extensions, IDE plugins, and CLI tools
+description: Complete reference for integrating Engram worker service into VSCode extensions, IDE plugins, and CLI tools
 icon: plug
 ---
 
 <Note>
-**Target Audience:** Developers building claude-mem integrations (VSCode extensions, IDE plugins, CLI tools).
+**Target Audience:** Developers building Engram integrations (VSCode extensions, IDE plugins, CLI tools).
 </Note>
 
 ## Quick Reference
@@ -317,7 +317,7 @@ GET /api/stats
     "port": 37742
   },
   "database": {
-    "path": "~/.claude-mem/claude-mem.db",
+    "path": "~/.engram/claude-mem.db",
     "size": 1048576,
     "observations": 500,
     "sessions": 50,
@@ -334,7 +334,7 @@ GET /api/projects
 
 ```json Response
 {
-  "projects": ["claude-mem", "other-project", ...]
+  "projects": ["Engram", "other-project", ...]
 }
 ```
 
@@ -892,13 +892,13 @@ const searchTool: SearchTool = {
 };
 
 // Register tool
-vscode.lm.registerTool('claude-mem-search', searchTool);
+vscode.lm.registerTool('Engram-search', searchTool);
 ```
 
 #### Chat Participant Implementation
 
 ```typescript
-const participant = vscode.chat.createChatParticipant('claude-mem', async (request, context, stream, token) => {
+const participant = vscode.chat.createChatParticipant('Engram', async (request, context, stream, token) => {
   const claudeSessionId = context.session.id;
 
   // First message in conversation - no initialization needed
@@ -1086,8 +1086,8 @@ esbuild.build({
 
 ```json
 {
-  "name": "claude-mem-vscode",
-  "displayName": "Claude-Mem",
+  "name": "Engram-vscode",
+  "displayName": "Engram",
   "version": "1.0.0",
   "engines": {
     "vscode": "^1.95.0"
@@ -1099,14 +1099,14 @@ esbuild.build({
   "contributes": {
     "chatParticipants": [
       {
-        "id": "claude-mem",
+        "id": "Engram",
         "name": "memory",
         "description": "Search your persistent memory"
       }
     ],
     "languageModelTools": [
       {
-        "name": "claude-mem-search",
+        "name": "Engram-search",
         "displayName": "Search Memory",
         "description": "Search persistent memory for observations, sessions, and prompts"
       }
@@ -1414,7 +1414,7 @@ import { WorkerClient } from './WorkerClient';
 export function registerSearchTool(context: vscode.ExtensionContext) {
   const client = new WorkerClient();
 
-  const searchTool = vscode.lm.registerTool('claude-mem-search', {
+  const searchTool = vscode.lm.registerTool('Engram-search', {
     description: 'Search persistent memory for observations, sessions, and prompts',
     inputSchema: {
       type: 'object',
@@ -1531,8 +1531,8 @@ const userMessage = '<private>API key: sk-1234567890</private>';
 ## Additional Resources
 
 <CardGroup cols={2}>
-  <Card title="Documentation" icon="book" href="https://claude-mem.ai">
-    Complete claude-mem documentation
+  <Card title="Documentation" icon="book" href="https://Engram.ai">
+    Complete Engram documentation
   </Card>
   <Card title="GitHub" icon="github" href="https://github.com/thedotmack/claude-mem">
     Source code and issue tracker

@@ -6,7 +6,7 @@ description: "Complete technical documentation for the process management and da
 <Note>
 **Historical Migration Documentation**
 
-This document describes the PM2 to Bun migration that occurred in v7.1.0 (December 2025). If you're installing claude-mem for the first time, this migration has already been completed and you can use the current Bun-based system documented in the main guides.
+This document describes the PM2 to Bun migration that occurred in v7.1.0 (December 2025). If you're installing Engram for the first time, this migration has already been completed and you can use the current Bun-based system documented in the main guides.
 
 This documentation is preserved for users upgrading from versions older than v7.1.0.
 </Note>
@@ -98,9 +98,9 @@ pm2 logs claude-mem-worker    # View logs
 - **Management**: Direct process control via PID file
 - **Discovery**: PID file + process existence check + HTTP health check
 - **Auto-restart**: Hook-triggered restart on failure detection
-- **Logs**: `~/.claude-mem/logs/worker-YYYY-MM-DD.log`
-- **PID File**: `~/.claude-mem/.worker.pid`
-- **Port File**: `~/.claude-mem/.worker.port` (new)
+- **Logs**: `~/.engram/logs/worker-YYYY-MM-DD.log`
+- **PID File**: `~/.engram/.worker.pid`
+- **Port File**: `~/.engram/.worker.port` (new)
 
 **Lifecycle Commands**:
 ```bash
@@ -114,12 +114,12 @@ npm run worker:logs     # View logs
 **Core Mechanisms**:
 
 1. **PID File Management**:
-   - File: `~/.claude-mem/.worker.pid`
+   - File: `~/.engram/.worker.pid`
    - Content: Process ID (e.g., "35557")
    - Validation: Process existence via `kill(pid, 0)` signal
 
 2. **Port File Management**:
-   - File: `~/.claude-mem/.worker.port`
+   - File: `~/.engram/.worker.port`
    - Content: Two lines (port number, PID)
    - Purpose: Track port binding and validate PID match
 
@@ -151,7 +151,7 @@ npm run worker:logs     # View logs
 
 **Compatibility**:
 - SQLite database format: **Unchanged**
-- Database file: `~/.claude-mem/claude-mem.db` (same location)
+- Database file: `~/.engram/claude-mem.db` (same location)
 - Query syntax: **Identical** (both use SQLite SQL)
 </Accordion>
 </AccordionGroup>
@@ -188,13 +188,13 @@ if (!existsSync(pm2MigratedMarker)) {
 SessionStart, UserPromptSubmit, or PostToolUse hooks execute using new 7.1.0 code
 </Step>
 <Step title="Worker Status Check">
-`ensureWorkerRunning()` checks if `~/.claude-mem/.worker.pid` exists (it doesn't for first run after update)
+`ensureWorkerRunning()` checks if `~/.engram/.worker.pid` exists (it doesn't for first run after update)
 </Step>
 <Step title="Start Worker Decision">
 Worker not running → Call `startWorker()`
 </Step>
 <Step title="Migration Check">
-Check if `~/.claude-mem/.pm2-migrated` exists
+Check if `~/.engram/.pm2-migrated` exists
 </Step>
 <Step title="PM2 Cleanup">
 Execute `pm2 delete claude-mem-worker` (errors ignored), create marker file
@@ -206,7 +206,7 @@ Spawn new Bun-managed worker process with PID and port files
 
 ### Marker File
 
-**Location**: `~/.claude-mem/.pm2-migrated`
+**Location**: `~/.engram/.pm2-migrated`
 
 **Content**: ISO 8601 timestamp
 ```
@@ -237,7 +237,7 @@ This is the critical migration moment. The process takes approximately 2-5 secon
 2. **Worker status check**: No PID file → worker not running
 3. **Migration check**: No marker file → run PM2 cleanup
 4. **PM2 cleanup**: `pm2 delete claude-mem-worker` (old worker terminated)
-5. **Marker creation**: `~/.claude-mem/.pm2-migrated` with timestamp
+5. **Marker creation**: `~/.engram/.pm2-migrated` with timestamp
 6. **New worker start**: Bun process spawned, PID/port files created
 7. **Verification**: Process check + HTTP health check
 8. **Hook completes**: Claude Code session starts normally
@@ -318,28 +318,28 @@ No migration logic runs on subsequent sessions.
 Old: ~/.pm2/logs/claude-mem-worker-out.log
      ~/.pm2/logs/claude-mem-worker-error.log
 
-New: ~/.claude-mem/logs/worker-YYYY-MM-DD.log
+New: ~/.engram/logs/worker-YYYY-MM-DD.log
 ```
 
 **PID Files**:
 ```
 Old: ~/.pm2/pids/claude-mem-worker.pid
 
-New: ~/.claude-mem/.worker.pid
+New: ~/.engram/.worker.pid
 ```
 
 **Process State**:
 ```
 Old: PM2 daemon memory (pm2 save)
 
-New: ~/.claude-mem/.worker.pid
-     ~/.claude-mem/.worker.port
-     ~/.claude-mem/.pm2-migrated (all platforms)
+New: ~/.engram/.worker.pid
+     ~/.engram/.worker.port
+     ~/.engram/.pm2-migrated (all platforms)
 ```
 
 **Database** (unchanged):
 ```
-Same: ~/.claude-mem/claude-mem.db
+Same: ~/.engram/claude-mem.db
 ```
 
 ### User-Visible Changes
@@ -384,7 +384,7 @@ After migration, these PM2 files may remain (safe to delete):
 pm2 kill
 rm -rf ~/.pm2
 
-# Or just remove claude-mem logs
+# Or just remove Engram logs
 rm -f ~/.pm2/logs/claude-mem-worker-*.log
 rm -f ~/.pm2/pids/claude-mem-worker.pid
 ```
@@ -395,7 +395,7 @@ rm -f ~/.pm2/pids/claude-mem-worker.pid
 
 **Before Migration** (PM2 system):
 ```
-~/.claude-mem/
+~/.engram/
 ├── claude-mem.db          # Database (unchanged)
 ├── chroma/                # Vector embeddings (unchanged)
 ├── logs/                  # Application logs (unchanged)
@@ -412,7 +412,7 @@ rm -f ~/.pm2/pids/claude-mem-worker.pid
 
 **After Migration** (Bun system):
 ```
-~/.claude-mem/
+~/.engram/
 ├── claude-mem.db          # Database (same file)
 ├── chroma/                # Vector embeddings (unchanged)
 ├── logs/
@@ -448,7 +448,7 @@ pm2 delete claude-mem-worker
 pm2 save  # Persist the deletion
 
 # Force re-migration (optional)
-rm ~/.claude-mem/.pm2-migrated
+rm ~/.engram/.pm2-migrated
 
 # Restart worker
 npm run worker:restart
@@ -465,8 +465,8 @@ npm run worker:restart
 
 **Manual Resolution**:
 ```bash
-rm ~/.claude-mem/.worker.pid
-rm ~/.claude-mem/.worker.port
+rm ~/.engram/.worker.pid
+rm ~/.engram/.worker.port
 npm run worker:start
 ```
 
@@ -516,7 +516,7 @@ node plugin/scripts/session-start-hook.js
 
 # 5. Verify migration
 pm2 list  # Should NOT show claude-mem-worker
-cat ~/.claude-mem/.pm2-migrated  # Should exist
+cat ~/.engram/.pm2-migrated  # Should exist
 npm run worker:status  # Should show Bun worker running
 ```
 

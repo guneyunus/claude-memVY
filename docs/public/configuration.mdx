@@ -1,13 +1,13 @@
 ---
 title: "Configuration"
-description: "Environment variables and settings for Claude-Mem"
+description: "Environment variables and settings for Engram"
 ---
 
 # Configuration
 
 ## Settings File
 
-Settings are managed in `~/.claude-mem/settings.json`. The file is auto-created with defaults on first run.
+Settings are managed in `~/.engram/settings.json`. The file is auto-created with defaults on first run.
 
 ### Core Settings
 
@@ -47,7 +47,7 @@ See [OpenRouter Provider](usage/openrouter-provider) for detailed configuration,
 
 ### Claude Gateway Settings
 
-Gateway credentials live in `~/.claude-mem/.env`, not `settings.json`.
+Gateway credentials live in `~/.engram/.env`, not `settings.json`.
 
 | Env var | Default | Description |
 |---------|---------|-------------|
@@ -80,11 +80,11 @@ Configure which Claude model compresses your observations (only applies when `CL
 
 ### Picking via the Installer
 
-`npx claude-mem install` prompts for the Claude model (when the Claude provider is selected) and persists the choice to `~/.claude-mem/settings.json`.
+`npx @guneyunus/engram install` prompts for the Claude model (when the Claude provider is selected) and persists the choice to `~/.engram/settings.json`.
 
 ### Manual Configuration
 
-Edit `~/.claude-mem/settings.json`:
+Edit `~/.engram/settings.json`:
 
 ```json
 {
@@ -123,13 +123,13 @@ Configure the active workflow mode and language.
 ### Data Directory Structure
 
 The data directory location depends on the environment:
-- **Production (installed plugin)**: `~/.claude-mem/` (always, regardless of CLAUDE_PLUGIN_ROOT)
+- **Production (installed plugin)**: `~/.engram/` (always, regardless of CLAUDE_PLUGIN_ROOT)
 - **Development**: Can be overridden with `CLAUDE_MEM_DATA_DIR`
 
 ```
-~/.claude-mem/
+~/.engram/
 ├── claude-mem.db           # SQLite database
-├── .install-version        # Version marker written by `npx claude-mem install`/`repair`
+├── .install-version        # Version marker written by `npx @guneyunus/engram install`/`repair`
 ├── settings.json           # Worker port + provider/model settings
 └── logs/
     ├── worker-out.log      # Worker stdout logs
@@ -174,18 +174,18 @@ The exact `hooks.json` entries are written by the installer; do not hand-edit th
 
 ### Search Configuration
 
-Claude-Mem provides MCP search tools for querying your project history.
+Engram provides MCP search tools for querying your project history.
 
 **No configuration required** - MCP tools are automatically available in Claude Code sessions.
 
 Search operations are provided via:
 - **MCP Server**: 3 tools (search, timeline, get_observations) with progressive disclosure
-- **HTTP API**: 10 endpoints on the worker service port (per-user, default `37700 + (uid % 100)`; see `~/.claude-mem/settings.json`)
+- **HTTP API**: 10 endpoints on the worker service port (per-user, default `37700 + (uid % 100)`; see `~/.engram/settings.json`)
 - **Auto-Invocation**: Claude recognizes natural language queries about past work
 
 ## Version Channel
 
-Claude-Mem supports switching between stable and beta versions via the web viewer UI.
+Engram supports switching between stable and beta versions via the web viewer UI.
 
 ### Accessing Version Channel
 
@@ -221,7 +221,7 @@ See [Folder Context Files](usage/folder-context) for full documentation on how t
 
 ## Context Injection Configuration
 
-Claude-Mem injects past observations into each new session, giving Claude awareness of recent work. You can configure exactly what gets injected using the **Context Settings Modal**.
+Engram injects past observations into each new session, giving Claude awareness of recent work. You can configure exactly what gets injected using the **Context Settings Modal**.
 
 ### Context Settings Modal
 
@@ -304,7 +304,7 @@ Token economics help you understand the value of cached observations vs. re-read
 
 ### Manual Configuration
 
-Settings are stored in `~/.claude-mem/settings.json`:
+Settings are stored in `~/.engram/settings.json`:
 
 ```json
 {
@@ -326,11 +326,11 @@ Settings are stored in `~/.claude-mem/settings.json`:
 
 ## Customization
 
-Settings can be customized in `~/.claude-mem/settings.json`.
+Settings can be customized in `~/.engram/settings.json`.
 
 ### Custom Data Directory
 
-Edit `~/.claude-mem/settings.json`:
+Edit `~/.engram/settings.json`:
 ```json
 {
   "CLAUDE_MEM_DATA_DIR": "/custom/path"
@@ -339,7 +339,7 @@ Edit `~/.claude-mem/settings.json`:
 
 ### Custom Worker Port
 
-Edit `~/.claude-mem/settings.json`:
+Edit `~/.engram/settings.json`:
 ```json
 {
   "CLAUDE_MEM_WORKER_PORT": "38000"
@@ -353,7 +353,7 @@ npm run worker:restart
 
 ### Custom Model
 
-Edit `~/.claude-mem/settings.json`:
+Edit `~/.engram/settings.json`:
 ```json
 {
   "CLAUDE_MEM_MODEL": "opus"
@@ -368,7 +368,7 @@ npm run worker:restart
 
 ### Custom Skip Tools
 
-Control which tools are excluded from observations. Edit `~/.claude-mem/settings.json`:
+Control which tools are excluded from observations. Edit `~/.engram/settings.json`:
 ```json
 {
   "CLAUDE_MEM_SKIP_TOOLS": "ListMcpResourcesTool,SlashCommand,Skill"
@@ -402,7 +402,7 @@ Hook timeouts are written into `plugin/hooks/hooks.json` by the installer. The c
 - PostToolUse (observation): 120s
 - Stop (summary): 120s
 
-The Setup hook never installs anything — runtime install (Bun, uv, `bun install`) happens in `npx claude-mem install` / `npx claude-mem repair` outside the session lifecycle.
+The Setup hook never installs anything — runtime install (Bun, uv, `bun install`) happens in `npx @guneyunus/engram install` / `npx @guneyunus/engram repair` outside the session lifecycle.
 
 ### Worker Memory Limit
 
@@ -413,7 +413,7 @@ The worker service is managed by Bun and will automatically restart if it encoun
 Enable debug logging:
 
 ```bash
-export DEBUG=claude-mem:*
+export DEBUG=Engram:*
 npm run worker:restart
 npm run worker:logs
 ```
