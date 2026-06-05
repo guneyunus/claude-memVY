@@ -61,7 +61,7 @@ function whoami(port) {
       res.on('data', (c) => (body += c));
       res.on('end', () => { try { resolve(JSON.parse(body)); } catch { resolve(null); } });
     });
-    req.on('error', () => resolve(null));
+    req.on('error', () => { req.destroy(); resolve(null); });
     req.on('timeout', () => { req.destroy(); resolve(null); });
   });
 }

@@ -35,6 +35,8 @@ Running list of constraints + review insights that later plans MUST honor. Captu
 - Idempotent import relies on `observations.UNIQUE(memory_session_id, content_hash)` + `ON CONFLICT DO NOTHING` (verified in M1).
 - Add `.mem/.runtime/` to the project `.gitignore`; add `*.ndjson merge=union` to `.mem/.gitattributes`.
 - Chroma is rebuildable from SQLite (`ChromaSync.backfillAllProjects()` on worker start) — gitignore `.mem/.runtime/chroma`.
+- **`<dataDir>/.mem/.runtime/worker.port` is ephemeral** (B4) — it lives under the gitignored `.mem/.runtime/`, so export/import must never sync it; if it ever lands on another machine, `claimPort` re-claims correctly anyway.
+- **Subprocess probes/tests must pre-seed the global `settings.json`.** `SettingsDefaultsManager.loadFromFile` `console.log`s `[SETTINGS] Created…` to stdout on first creation, which corrupts stdout-as-protocol probes. Tests pre-write an empty `settings.json` in the temp global dir. A cleaner lib fix (log to stderr) is a possible C-prep cleanup. (B4 review-noted; `whoamiInfo().port` itself is correct — `applyEnvOverrides` applies the `CLAUDE_MEM_WORKER_PORT` env, so it returns the claimed port.)
 
 ## For Plan D — git sync + smoke test
 

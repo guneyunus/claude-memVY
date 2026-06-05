@@ -69,8 +69,17 @@ describe('claimPort', () => {
     } finally { rmSync(dir, { recursive: true, force: true }); }
   });
 
-  it('wraps within the port range', () => {
-    // sanity: the range constants are what we expect
+  it('wraps within the port range (candidate near the top)', async () => {
+    const dir = tmp('engram-wrap-');
+    try {
+      const top = PORT_BASE + PORT_RANGE - 2; // 37948; last two slots busy below
+      const isPortFree = async (p: number) => p === PORT_BASE; // only the wrapped slot is free
+      const port = await claimPort(dir, top, { isPortFree, whoami: async () => null });
+      expect(port).toBe(PORT_BASE); // (top - PORT_BASE + 2) % PORT_RANGE === 0
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+
+  it('exposes the expected range constants', () => {
     expect(PORT_BASE).toBe(37800);
     expect(PORT_RANGE).toBe(150);
   });

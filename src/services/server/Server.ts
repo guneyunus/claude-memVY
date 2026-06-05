@@ -249,7 +249,7 @@ export class Server {
       res.status(200).json({ version: BUILT_IN_VERSION });
     });
 
-    this.app.get('/api/whoami', (_req: Request, res: Response) => {
+    this.app.get('/api/whoami', requireLocalhost, (_req: Request, res: Response) => {
       res.status(200).json(whoamiInfo());
     });
 
