@@ -349,7 +349,7 @@ Expected: clean. (Only `.cjs`/`.js`/test files added; `engram-resolve.cjs` is no
 - [ ] **Step 2: Full engram test directory**
 
 Run: `npx bun test tests/engram/`
-Expected: PASS — project-root (8) + global-config (3) + engram-resolve (4) + bun-runner-injection (2) = **17 tests**.
+Expected: PASS — project-root (9) + global-config (3) + engram-resolve (4) + bun-runner-injection (2) = **18 tests**.
 
 - [ ] **Step 3: Confirm the live install was NOT modified**
 
@@ -363,7 +363,7 @@ Expected: clean working tree. Confirm NO `npm run build-and-sync` was run and NO
 - `plugin/scripts/engram-resolve.cjs` mirrors `project-root.ts` (parity test green).
 - `bun-runner.js` injects per-project `CLAUDE_MEM_DATA_DIR` + `CLAUDE_MEM_WORKER_PORT` before spawn, fail-open, and does not override an explicit env.
 - Isolated integration proves a real `bun-runner.js` run injects the correct values for a temp git repo's cwd (no real worker, no live install touched).
-- `npx bun test tests/engram/` green (17 tests); `npm run typecheck:root` clean.
+- `npx bun test tests/engram/` green (18 tests); `npm run typecheck:root` clean.
 - No `build-and-sync`, no worker restart, working tree clean.
 
 ## Self-review notes (author)
