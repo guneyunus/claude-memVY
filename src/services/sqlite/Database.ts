@@ -23,7 +23,27 @@ export class ClaudeMemDatabase {
       ensureDir(DATA_DIR);
     }
 
-    this.db = ClaudeMemDatabase.openWithSchemaRepair(dbPath);
+    const raw = ClaudeMemDatabase.openWithSchemaRepair(dbPath);
+    // On Windows, Bun's bun:sqlite Database.close() does not release OS file
+    // handles synchronously. Wrap the public db handle in a Proxy so that any
+    // direct close() call (e.g. `instance.db.close()` in tests) also runs
+    // Bun.gc() to flush the GC finalizer that drops the native handle.
+    this.db = new Proxy(raw, {
+      get(target, prop, receiver) {
+        if (prop === 'close') {
+          return () => {
+            try { target.run('PRAGMA wal_checkpoint(TRUNCATE)'); } catch { /* ignore */ }
+            const result = target.close();
+            if (typeof (globalThis as any).Bun?.gc === 'function') {
+              (globalThis as any).Bun.gc(true);
+            }
+            return result;
+          };
+        }
+        const val = Reflect.get(target, prop, receiver);
+        return typeof val === 'function' ? val.bind(target) : val;
+      },
+    });
 
     this.db.run('PRAGMA journal_mode = WAL');
     this.db.run('PRAGMA synchronous = NORMAL');
