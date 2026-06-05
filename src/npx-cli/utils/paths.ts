@@ -25,7 +25,7 @@ export function claudeConfigDirectory(): string {
 }
 
 export function marketplaceDirectory(): string {
-  return join(claudeConfigDirectory(), 'plugins', 'marketplaces', 'thedotmack');
+  return join(claudeConfigDirectory(), 'plugins', 'marketplaces', 'engram');
 }
 
 export function pluginsDirectory(): string {
@@ -45,7 +45,7 @@ export function claudeSettingsPath(): string {
 }
 
 export function pluginCacheDirectory(version: string): string {
-  return join(pluginsDirectory(), 'cache', 'thedotmack', 'claude-mem', version);
+  return join(pluginsDirectory(), 'cache', 'engram', 'engram', version);
 }
 
 export function npmPackageRootDirectory(): string {

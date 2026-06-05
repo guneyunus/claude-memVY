@@ -19,7 +19,7 @@ const PLAN = [
   {
     file: 'package.json',
     edits: [
-      { from: '"name": "claude-mem",', to: '"name": "engram",' },
+      { from: '"name": "claude-mem",', to: '"name": "@guneyunus/engram",' },
       { from: '"claude-mem": "./dist/npx-cli/index.js"', to: '"engram": "./dist/npx-cli/index.js"' },
       {
         from: '"description": "Memory compression system for Claude Code - persist context across sessions",',
@@ -121,6 +121,75 @@ const PLAN = [
     file: 'tests/servers/mcp-server-name-safety.test.ts',
     edits: [
       { from: "'mcp__plugin_claude-mem_mcp-search__'", to: "'mcp__plugin_engram_engram__'" },
+    ],
+  },
+
+  // ---- Plan E (full distribution rebrand): marketplace slug + plugin identifier + repo ----
+  {
+    file: '.claude-plugin/marketplace.json',
+    edits: [ { from: '"name": "thedotmack",', to: '"name": "engram",' } ],
+  },
+  {
+    file: '.agents/plugins/marketplace.json',
+    edits: [
+      { from: '"name": "claude-mem-local"', to: '"name": "engram-local"' },
+      { from: '"name": "claude-mem"', to: '"name": "engram"' },
+      { from: '"displayName": "claude-mem (local)"', to: '"displayName": "engram (local)"' },
+    ],
+  },
+  {
+    file: 'src/shared/paths.ts',
+    edits: [ { from: "'plugins', 'marketplaces', 'thedotmack'", to: "'plugins', 'marketplaces', 'engram'" } ],
+  },
+  {
+    file: 'src/npx-cli/utils/paths.ts',
+    edits: [
+      { from: "'marketplaces', 'thedotmack'", to: "'marketplaces', 'engram'" },
+      { from: "'cache', 'thedotmack', 'claude-mem'", to: "'cache', 'engram', 'engram'" },
+    ],
+  },
+  {
+    file: 'src/shared/plugin-state.ts',
+    edits: [ { from: "'claude-mem@thedotmack'", to: "'engram@engram'" } ],
+  },
+  {
+    file: 'plugin/scripts/bun-runner.js',
+    edits: [ { from: "enabledPlugins?.['claude-mem@thedotmack']", to: "enabledPlugins?.['engram@engram']" } ],
+  },
+  {
+    file: 'src/npx-cli/commands/install.ts',
+    edits: [
+      { from: "knownMarketplaces['thedotmack']", to: "knownMarketplaces['engram']", all: true },
+      { from: "repo: 'thedotmack/claude-mem'", to: "repo: 'guneyunus/claude-memVY'" },
+      { from: "'claude-mem@thedotmack'", to: "'engram@engram'", all: true },
+    ],
+  },
+  {
+    file: 'src/services/integrations/CodexCliInstaller.ts',
+    edits: [
+      { from: "const MARKETPLACE_NAME = 'claude-mem-local';", to: "const MARKETPLACE_NAME = 'engram-local';" },
+      { from: 'const CODEX_PLUGIN_ID = `claude-mem@${MARKETPLACE_NAME}`;', to: 'const CODEX_PLUGIN_ID = `engram@${MARKETPLACE_NAME}`;' },
+      { from: "'claude-mem@thedotmack'", to: "'engram@engram'" },
+    ],
+  },
+  {
+    file: 'scripts/sync-marketplace.cjs',
+    edits: [
+      { from: "path.join(os.homedir(), '.claude', 'plugins', 'marketplaces', 'thedotmack')", to: "path.join(os.homedir(), '.claude', 'plugins', 'marketplaces', 'engram')" },
+      { from: "path.join(os.homedir(), '.claude', 'plugins', 'cache', 'thedotmack', 'claude-mem')", to: "path.join(os.homedir(), '.claude', 'plugins', 'cache', 'engram', 'engram')" },
+      { from: 'run \\`claude plugin update thedotmack/claude-mem\\`', to: 'run \\`claude plugin update guneyunus/claude-memVY\\`' },
+      { from: "./ ~/.claude/plugins/marketplaces/thedotmack/`", to: "./ ~/.claude/plugins/marketplaces/engram/`", all: true },
+      { from: "'cd ~/.claude/plugins/marketplaces/thedotmack/ && bun install'", to: "'cd ~/.claude/plugins/marketplaces/engram/ && bun install'" },
+    ],
+  },
+  {
+    file: 'package.json',
+    edits: [
+      { from: 'marketplaces/thedotmack', to: 'marketplaces/engram' },
+      { from: '"url": "https://github.com/thedotmack/claude-mem.git"', to: '"url": "https://github.com/guneyunus/claude-memVY.git"' },
+      { from: '"homepage": "https://github.com/thedotmack/claude-mem#readme"', to: '"homepage": "https://github.com/guneyunus/claude-memVY#readme"' },
+      { from: '"url": "https://github.com/thedotmack/claude-mem/issues"', to: '"url": "https://github.com/guneyunus/claude-memVY/issues"' },
+      { from: '"version": "13.4.0"', to: '"version": "1.0.0"' },
     ],
   },
 ];

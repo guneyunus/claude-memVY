@@ -1,11 +1,11 @@
 {
-  "name": "claude-mem-local",
+  "name": "engram-local",
   "interface": {
-    "displayName": "claude-mem (local)"
+    "displayName": "engram (local)"
   },
   "plugins": [
     {
-      "name": "claude-mem",
+      "name": "engram",
       "source": {
         "source": "local",
         "path": "./plugin"

@@ -44,7 +44,7 @@ export const DATA_DIR = resolveDataDir();
 export const GLOBAL_CONFIG_DIR = globalConfigDir();
 export const CLAUDE_CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude');
 
-export const MARKETPLACE_ROOT = join(CLAUDE_CONFIG_DIR, 'plugins', 'marketplaces', 'thedotmack');
+export const MARKETPLACE_ROOT = join(CLAUDE_CONFIG_DIR, 'plugins', 'marketplaces', 'engram');
 
 export const ARCHIVES_DIR = join(DATA_DIR, 'archives');
 export const LOGS_DIR = join(DATA_DIR, 'logs');
