@@ -78,7 +78,7 @@ export function getWorkerHost(): string {
     return cachedHost;
   }
 
-  const settingsPath = USER_SETTINGS_PATH; // global config (Plan B3); CLAUDE_MEM_WORKER_PORT env still overrides via applyEnvOverrides
+  const settingsPath = USER_SETTINGS_PATH; // global config (Plan B3); CLAUDE_MEM_WORKER_HOST env still overrides via applyEnvOverrides
   const settings = SettingsDefaultsManager.loadFromFile(settingsPath);
   cachedHost = settings.CLAUDE_MEM_WORKER_HOST;
   return cachedHost;

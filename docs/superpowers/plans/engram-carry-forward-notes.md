@@ -14,8 +14,20 @@ Running list of constraints + review insights that later plans MUST honor. Captu
 - `resolveProjectRoot` is a **synchronous** `execFileSync` (now with `timeout: 5000`). Acceptable on the once-per-session hook path; document this in the hook template so a maintainer doesn't "fix" it into async shell complexity.
 - **Port collision — DEFERRED to Plan B4 (superseding the original "must be in B2").** `projectWorkerPort` returns a *candidate*. With ~10 active projects on one machine the birthday-problem collision probability is ~26%. B2 ships the deterministic candidate only (documented limitation in `bun-runner.js`); it is safe because B2 must not go live until B3 lands. **B4** must bind-or-increment within `[PORT_BASE, PORT_BASE+PORT_RANGE)`, verify ownership via `/api/whoami`, and persist the actual chosen port to `<dataDir>/worker.port`. Engram must not be shipped live without B4.
 - **Single-instance must key on the absolute `root`, not `slug`** — two different projects can share a directory basename. Use `ProjectRuntime.root`.
-- **Config split ordering:** redirect the secret/settings reads to `globalSettingsPath()` / `globalEnvPath()` **before** `DATA_DIR` is changed to project-local, or the user's existing `~/.engram/settings.json` (+ `.env` secrets) silently become per-project. Touch-points: `EnvManager.envFilePath()`, every `loadFromFile(USER_SETTINGS_PATH)` / `loadFromFile(paths.settings())` reader, and the provider key reads (`GeminiProvider`, `OpenRouterProvider`, `ClaudeProvider`). The secret-bearing keys to keep global: `CLAUDE_MEM_*_API_KEY`, `CLAUDE_MEM_TELEGRAM_BOT_TOKEN`, `CLAUDE_MEM_SERVER_BETA_API_KEY`, and the `.env` Anthropic/Gemini/OpenRouter keys.
+- **Config split ordering — [DONE in Plan B3].** Secrets/settings (`settings.json` + `.env`) now resolve to `GLOBAL_CONFIG_DIR` (`~/.engram`) via `paths.ts` (`USER_SETTINGS_PATH`/`paths.settings()`/`paths.envFile()` → `globalSettingsPath()`/`globalEnvPath()`), plus `getWorkerPort/Host` and `server.ts` (server-beta key). DB/chroma/logs/pid stay per-project. No-op until per-project `DATA_DIR` (B2) is active. Provider key reads use `paths.settings()`/`.env` so they followed automatically.
 - `resolve-cli.ts` prints pretty JSON. If B2 consumes it from shell, `jq` is often absent on Windows — add a `--field <name>` bare-scalar flag instead of relying on `jq`.
+
+## For Plan B4 — whoami + port collision (required before go-live)
+
+- Bind-or-increment within `[37800, 37950)`, verify ownership via a new `/api/whoami` (returns `{dataDir, dbPath, port}`; mirror `/api/version` in `Server.setupCoreRoutes`), persist the chosen port to `<dataDir>/worker.port`. Read the persisted port in `bun-runner.js` (before the `if (!process.env.CLAUDE_MEM_WORKER_PORT)` guard) so a project reclaims its port.
+- **Port state must be per-project, NOT in `settings.json`.** `SettingsRoutes.handleUpdateSettings` writes `paths.settings()` (now GLOBAL, B3) and includes `CLAUDE_MEM_WORKER_PORT`. So if B4 tried to persist a per-project port via settings.json it would go global (wrong). Use a dedicated `<dataDir>/worker.port` file instead. (`clearPortCache()` is already called by SettingsRoutes on write.)
+- B2 injects the candidate port and bun-runner respects an already-set `CLAUDE_MEM_WORKER_PORT`; B4's "read persisted port → set env → (bun-runner guard)" ordering fits cleanly.
+
+## Go-live (build-and-sync) — DO NOT run until B2+B3+B4 all land
+
+- B2 must not go live without B3 (config-split) and B4 (collision). The repo accumulates them safely; `build-and-sync` + worker restart is the only step that activates them on the user's machine.
+- **No migration needed for existing users:** default `GLOBAL_CONFIG_DIR == ~/.engram`, identical to pre-B2 `DATA_DIR`, so `~/.engram/settings.json` is found unchanged. `resolveDataDir()` bootstrap reads `~/.engram/settings.json` (hardcoded) for a custom `CLAUDE_MEM_DATA_DIR` — still correct.
+- Sweep remaining cosmetic `~/.claude-mem` strings in user-facing messages (`install.ts`, `EnvManager.ts` comments, `server-beta-bootstrap.ts:16`) before release — pre-existing from Plan A's minimum rebrand, out of scope of B-series.
 
 ## For Plan C — diffable `.mem/` export/import
 

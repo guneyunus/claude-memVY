@@ -41,6 +41,7 @@ describe('config split — path redirection', () => {
     try {
       const out = runProbe(PROBE_PATHS, { CLAUDE_MEM_DATA_DIR: dir, ENGRAM_GLOBAL_DIR: dir });
       expect(out.settingsConst).toBe(join(dir, 'settings.json'));
+      expect(out.envFile).toBe(join(dir, '.env'));
       expect(out.db).toBe(join(dir, 'engram.db'));
     } finally {
       rmSync(dir, { recursive: true, force: true });
