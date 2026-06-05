@@ -74,7 +74,7 @@ function removeCacheDirectory(): boolean {
   // Remove the current (engram) cache as well as the legacy (thedotmack) cache.
   for (const cachePath of [
     join(pluginsDirectory(), 'cache', 'engram', 'engram'),
-    join(pluginsDirectory(), 'cache', 'thedotmack', 'claude-mem'),
+    join(pluginsDirectory(), 'cache', 'thedotmack', 'engram'),
   ]) {
     if (existsSync(cachePath)) {
       rmSync(cachePath, { recursive: true, force: true });
@@ -164,7 +164,7 @@ function removeStrayClaudeMemPaths(): number {
       console.warn(`[uninstall] Could not read ${npxRoot}:`, error instanceof Error ? error.message : String(error));
     }
     for (const hashDir of hashDirs) {
-      const candidate = join(npxRoot, hashDir, 'node_modules', 'claude-mem');
+      const candidate = join(npxRoot, hashDir, 'node_modules', 'engram');
       if (!existsSync(candidate)) continue;
       try {
         rmSync(candidate, { recursive: true, force: true });
@@ -223,10 +223,10 @@ function removeStrayClaudeMemPaths(): number {
 }
 
 export async function runUninstallCommand(): Promise<void> {
-  p.intro(pc.bgRed(pc.white(' claude-mem uninstall ')));
+  p.intro(pc.bgRed(pc.white(' engram uninstall ')));
 
   if (!isPluginInstalled()) {
-    p.log.warn('claude-mem does not appear to be installed.');
+    p.log.warn('Engram does not appear to be installed.');
 
     if (process.stdin.isTTY) {
       const shouldCleanup = await p.confirm({
@@ -244,7 +244,7 @@ export async function runUninstallCommand(): Promise<void> {
     }
   } else if (process.stdin.isTTY) {
     const shouldContinue = await p.confirm({
-      message: 'Are you sure you want to uninstall claude-mem?',
+      message: 'Are you sure you want to uninstall Engram?',
       initialValue: false,
     });
 
@@ -283,7 +283,7 @@ export async function runUninstallCommand(): Promise<void> {
     }
     if (serverPlan.clearServerSettings) {
       clearServerRuntimeSettings(serverPlan.settingsKeysToClear);
-      p.log.info('Server runtime settings cleared from ~/.claude-mem/settings.json.');
+      p.log.info('Server runtime settings cleared from ~/.engram/settings.json.');
     }
   }
 
@@ -335,7 +335,7 @@ export async function runUninstallCommand(): Promise<void> {
       },
     },
     {
-      title: 'Removing stray claude-mem caches and logs',
+      title: 'Removing stray Engram caches and logs',
       task: async () => {
         const removed = removeStrayClaudeMemPaths();
         return removed > 0
@@ -381,11 +381,11 @@ export async function runUninstallCommand(): Promise<void> {
 
   p.note(
     [
-      `Your data directory at ${pc.cyan('~/.claude-mem')} was preserved.`,
-      'To remove it manually: rm -rf ~/.claude-mem',
+      `Your data directory at ${pc.cyan('~/.engram')} was preserved.`,
+      'To remove it manually: rm -rf ~/.engram',
     ].join('\n'),
     'Note',
   );
 
-  p.outro(pc.green('claude-mem has been uninstalled.'));
+  p.outro(pc.green('Engram has been uninstalled.'));
 }

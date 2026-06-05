@@ -208,7 +208,7 @@ function makeIDETask(ideId: string, summary: InstallSummary): TaskDescriptor | n
           if (mcpResult === 0) {
             return `Cursor: hooks + MCP installed ${pc.green('OK')}`;
           }
-          return `Cursor: hooks installed; MCP setup failed — run \`npx claude-mem cursor mcp\` ${pc.yellow('!')}`;
+          return `Cursor: hooks installed; MCP setup failed — run \`npx @guneyunus/engram cursor mcp\` ${pc.yellow('!')}`;
         },
       };
     }
@@ -730,7 +730,7 @@ async function promptRuntime(options: InstallOptions): Promise<RuntimeId> {
   }
 
   const selected = await p.select<RuntimeId>({
-    message: 'Which runtime should claude-mem start after install?',
+    message: 'Which runtime should Engram start after install?',
     options: [
       { value: 'worker', label: 'Worker', hint: 'stable compatibility path' },
       { value: 'server-beta', label: 'Server (beta)', hint: 'REST V1, API keys, team-ready storage' },
@@ -794,7 +794,7 @@ async function maybeBootstrapServerBetaApiKey(): Promise<void> {
   if (!process.env.CLAUDE_MEM_SERVER_DATABASE_URL) {
     log.warn(
       'Skipping local hook API key bootstrap: CLAUDE_MEM_SERVER_DATABASE_URL is not set. '
-        + 'Run `npx claude-mem server keys rotate` after configuring Postgres to provision a key.',
+        + 'Run `npx @guneyunus/engram server keys rotate` after configuring Postgres to provision a key.',
     );
     return;
   }
@@ -814,7 +814,7 @@ async function maybeBootstrapServerBetaApiKey(): Promise<void> {
   } catch (error: unknown) {
     log.warn(
       `Failed to bootstrap server-beta API key: ${error instanceof Error ? error.message : String(error)}. `
-        + 'Hooks will fall back to the worker until you run `npx claude-mem server keys rotate`.',
+        + 'Hooks will fall back to the worker until you run `npx @guneyunus/engram server keys rotate`.',
     );
   }
 }
@@ -828,7 +828,7 @@ async function promptProvider(options: InstallOptions): Promise<ProviderId> {
       CLAUDE_MEM_PROVIDER: 'claude',
       CLAUDE_MEM_CLAUDE_AUTH_METHOD: resolvedAuthMethod,
     });
-    if (wrote) log.info('Saved Claude Agent SDK configuration to ~/.claude-mem/settings.json');
+    if (wrote) log.info('Saved Claude Agent SDK configuration to ~/.engram/settings.json');
   };
 
   const useSubscriptionAuth = () => {
@@ -838,7 +838,7 @@ async function promptProvider(options: InstallOptions): Promise<ProviderId> {
       ANTHROPIC_BASE_URL: '',
       ANTHROPIC_AUTH_TOKEN: '',
     });
-    log.info('Configured claude-mem to use your logged-in Claude SDK account.');
+    log.info('Configured Engram to use your logged-in Claude SDK account.');
   };
 
   const configureDirectApiKey = async (): Promise<void> => {
@@ -929,7 +929,7 @@ async function promptProvider(options: InstallOptions): Promise<ProviderId> {
     if (tokenCancelled || tokenInput.length === 0) {
       log.info('Gateway URL saved; existing gateway token preserved.');
     } else {
-      log.info('Configured Claude Agent SDK gateway in ~/.claude-mem/.env.');
+      log.info('Configured Claude Agent SDK gateway in ~/.engram/.env.');
     }
   };
 
@@ -940,7 +940,7 @@ async function promptProvider(options: InstallOptions): Promise<ProviderId> {
         return 'claude';
       }
       const wrote = mergeSettings({ CLAUDE_MEM_PROVIDER: options.provider });
-      if (wrote) log.info(`Saved provider=${options.provider} to ~/.claude-mem/settings.json`);
+      if (wrote) log.info(`Saved provider=${options.provider} to ~/.engram/settings.json`);
       log.warn(`Provider=${options.provider} requested non-interactively. API key prompt skipped — set CLAUDE_MEM_${options.provider.toUpperCase()}_API_KEY and CLAUDE_MEM_PROVIDER in settings.json or env manually if not already set.`);
       return options.provider;
     }
@@ -971,7 +971,7 @@ async function promptProvider(options: InstallOptions): Promise<ProviderId> {
     }
 
     const apiModeResult = await p.select<ClaudeApiMode>({
-      message: 'How should claude-mem connect?',
+      message: 'How should Engram connect?',
       options: [
         { value: 'direct', label: 'Anthropic API key' },
         { value: 'gateway', label: 'LiteLLM or custom gateway' },
@@ -1024,7 +1024,7 @@ async function promptProvider(options: InstallOptions): Promise<ProviderId> {
   const existingKey = getSetting(keyEnvName as keyof SettingsDefaults) as string | undefined;
   if (existingKey && existingKey.trim().length > 0) {
     const wrote = mergeSettings({ CLAUDE_MEM_PROVIDER: selectedProvider });
-    if (wrote) log.info(`Saved provider=${selectedProvider} to ~/.claude-mem/settings.json`);
+    if (wrote) log.info(`Saved provider=${selectedProvider} to ~/.engram/settings.json`);
     return selectedProvider;
   }
 
@@ -1046,7 +1046,7 @@ async function promptProvider(options: InstallOptions): Promise<ProviderId> {
     [keyEnvName]: apiKey,
   });
   if (wrote) {
-    log.info(`Saved provider=${selectedProvider} to ~/.claude-mem/settings.json`);
+    log.info(`Saved provider=${selectedProvider} to ~/.engram/settings.json`);
   }
   return selectedProvider;
 }
@@ -1067,14 +1067,14 @@ async function promptClaudeModel(options: InstallOptions): Promise<void> {
     }
     const wrote = mergeSettings({ CLAUDE_MEM_MODEL: options.model });
     if (wrote) {
-      log.info(`Saved Claude model=${options.model} to ~/.claude-mem/settings.json`);
+      log.info(`Saved Claude model=${options.model} to ~/.engram/settings.json`);
     }
     return;
   }
   if (options.model && allowCustomModel) {
     const wrote = mergeSettings({ CLAUDE_MEM_MODEL: options.model });
     if (wrote) {
-      log.info(`Saved gateway model=${options.model} to ~/.claude-mem/settings.json`);
+      log.info(`Saved gateway model=${options.model} to ~/.engram/settings.json`);
     }
     return;
   }
@@ -1099,7 +1099,7 @@ async function promptClaudeModel(options: InstallOptions): Promise<void> {
     const selectedModel = String(result).trim();
     const wrote = mergeSettings({ CLAUDE_MEM_MODEL: selectedModel });
     if (wrote) {
-      log.info(`Saved gateway model=${selectedModel} to ~/.claude-mem/settings.json`);
+      log.info(`Saved gateway model=${selectedModel} to ~/.engram/settings.json`);
     }
     return;
   }
@@ -1107,7 +1107,7 @@ async function promptClaudeModel(options: InstallOptions): Promise<void> {
   const initialValue = allowed.has(initialModel) ? initialModel : 'claude-haiku-4-5-20251001';
 
   const result = await p.select<string>({
-    message: 'Which Claude model should claude-mem use to compress observations?\nThis runs whenever you and Claude touch a file — keep it cheap and fast.',
+    message: 'Which Claude model should Engram use to compress observations?\nThis runs whenever you and Claude touch a file — keep it cheap and fast.',
     options: [
       { value: 'claude-haiku-4-5-20251001', label: 'Haiku 4.5 (recommended — fast, cheap, great for compression)' },
       { value: 'claude-sonnet-4-6', label: 'Sonnet 4.6 (balanced quality and cost)' },
@@ -1124,7 +1124,7 @@ async function promptClaudeModel(options: InstallOptions): Promise<void> {
 
   const wrote = mergeSettings({ CLAUDE_MEM_MODEL: selectedModel });
   if (wrote) {
-    log.info(`Saved Claude model=${selectedModel} to ~/.claude-mem/settings.json`);
+    log.info(`Saved Claude model=${selectedModel} to ~/.engram/settings.json`);
   }
 }
 
@@ -1154,7 +1154,7 @@ export async function runInstallCommand(options: InstallOptions = {}): Promise<v
       if (isInteractive) {
         p.log.error(headline);
         p.log.error(error.remediation);
-        p.outro(pc.red('claude-mem installation aborted.'));
+        p.outro(pc.red('Engram installation aborted.'));
       } else {
         console.error(`\n  ${headline}`);
         console.error(`  ${error.remediation}`);
@@ -1171,9 +1171,9 @@ async function runInstallCommandInner(options: InstallOptions, summary: InstallS
 
   if (isInteractive) {
     await playBanner();
-    p.intro(pc.bgCyan(pc.black(' claude-mem install ')));
+    p.intro(pc.bgCyan(pc.black(' engram install ')));
   } else {
-    console.log('claude-mem install');
+    console.log('engram install');
   }
   const marketplaceDir = marketplaceDirectory();
   const alreadyInstalled = existsSync(join(marketplaceDir, 'plugin', '.claude-plugin', 'plugin.json'));
@@ -1191,7 +1191,7 @@ async function runInstallCommandInner(options: InstallOptions, summary: InstallS
   }
 
   const dot = pc.dim('·');
-  const segments = [`${pc.bold('claude-mem')} ${pc.cyan(`v${version}`)}`];
+  const segments = [`${pc.bold('engram')} ${pc.cyan(`v${version}`)}`];
   if (existingVersion && existingVersion !== version) {
     segments.push(`installed ${pc.yellow(`v${existingVersion}`)}`);
   } else if (existingVersion) {
@@ -1388,7 +1388,7 @@ async function runInstallCommandInner(options: InstallOptions, summary: InstallS
       title: selectedRuntime === 'server-beta' ? 'Starting server beta daemon' : 'Starting worker daemon',
       task: async (message) => {
         if (selectedRuntime === 'server-beta') {
-          return `Server runtime selected — start it with ${pc.bold('npx claude-mem server start')} ${pc.dim('(or via Docker compose)')}`;
+          return `Server runtime selected — start it with ${pc.bold('npx @guneyunus/engram server start')} ${pc.dim('(or via Docker compose)')}`;
         }
         if (autoStartSkipped) {
           return isInteractive
@@ -1409,7 +1409,7 @@ async function runInstallCommandInner(options: InstallOptions, summary: InstallS
           case 'warming':
             return `Worker starting on port ${port} — finishing in background ${pc.yellow('⏳')}`;
           case 'dead':
-            return `Worker did not start — try \`npx claude-mem start\` manually ${pc.yellow('!')}`;
+            return `Worker did not start — try \`npx @guneyunus/engram start\` manually ${pc.yellow('!')}`;
         }
       },
     },
@@ -1487,7 +1487,7 @@ async function runInstallCommandInner(options: InstallOptions, summary: InstallS
   const finalWorkerState = workerStartResult as WorkerStartResult;
   const workerAlive = finalWorkerState !== 'dead' || workerReady;
   const runtimeLabel = selectedRuntime === 'server-beta' ? 'Server beta' : 'Worker';
-  const runtimeStartCommand = selectedRuntime === 'server-beta' ? 'npx claude-mem server start' : 'npx claude-mem start';
+  const runtimeStartCommand = selectedRuntime === 'server-beta' ? 'npx @guneyunus/engram server start' : 'npx @guneyunus/engram start';
   const workerHeadline = autoStartSkipped
     ? `${pc.yellow('!')} ${runtimeLabel} autostart skipped — start it manually with ${pc.bold(runtimeStartCommand)}`
     : workerReady || finalWorkerState === 'ready'
@@ -1504,10 +1504,10 @@ async function runInstallCommandInner(options: InstallOptions, summary: InstallS
         `  ${pc.cyan('B.')} Front-load it: open Claude Code and run ${pc.bold('/learn-codebase')} to ingest the whole repo (~5 min, optional).`,
         ``,
         `Memory injection starts on your second session in a project.`,
-        `Everything stays in ${pc.cyan('~/.claude-mem')} on this machine.`,
+        `Everything stays in ${pc.cyan('~/.engram')} on this machine.`,
         ``,
         `${pc.dim('How it works: /how-it-works   ·   Disable first-session hint: CLAUDE_MEM_WELCOME_HINT_ENABLED=false')}`,
-        `${pc.dim('Note: close all Claude Code sessions before uninstalling, or ~/.claude-mem will be recreated by active hooks.')}`,
+        `${pc.dim('Note: close all Claude Code sessions before uninstalling, or ~/.engram will be recreated by active hooks.')}`,
       ]
     : workerAlive
     ? [
@@ -1520,13 +1520,13 @@ async function runInstallCommandInner(options: InstallOptions, summary: InstallS
         `  ${pc.cyan('B.')} Front-load it: open Claude Code and run ${pc.bold('/learn-codebase')} to ingest the whole repo (~5 min, optional).`,
         ``,
         `Memory injection starts on your second session in a project.`,
-        `Everything stays in ${pc.cyan('~/.claude-mem')} on this machine.`,
+        `Everything stays in ${pc.cyan('~/.engram')} on this machine.`,
         ``,
         `${pc.dim('How it works: /how-it-works   ·   Disable first-session hint: CLAUDE_MEM_WELCOME_HINT_ENABLED=false')}`,
-        `${pc.dim('Note: close all Claude Code sessions before uninstalling, or ~/.claude-mem will be recreated by active hooks.')}`,
+        `${pc.dim('Note: close all Claude Code sessions before uninstalling, or ~/.engram will be recreated by active hooks.')}`,
       ]
     : [
-        `${pc.yellow('!')} Worker not yet ready on port ${pc.cyan(String(workerPort))} -- still starting up; check ${pc.bold('claude-mem status')} later, or start manually: ${pc.bold('npx claude-mem start')}`,
+        `${pc.yellow('!')} Worker not yet ready on port ${pc.cyan(String(workerPort))} -- still starting up; check ${pc.bold('engram status')} later, or start manually: ${pc.bold('npx @guneyunus/engram start')}`,
         ``,
         `${pc.bold('First success:')} keep ${pc.underline(`http://localhost:${workerPort}`)} open in a browser, then open Claude Code in any project. Observations stream in as Claude reads, edits, and runs commands.`,
         ``,
@@ -1535,27 +1535,27 @@ async function runInstallCommandInner(options: InstallOptions, summary: InstallS
         `  ${pc.cyan('B.')} Front-load it: open Claude Code and run ${pc.bold('/learn-codebase')} to ingest the whole repo (~5 min, optional).`,
         ``,
         `Memory injection starts on your second session in a project.`,
-        `Everything stays in ${pc.cyan('~/.claude-mem')} on this machine.`,
+        `Everything stays in ${pc.cyan('~/.engram')} on this machine.`,
         ``,
         `${pc.dim('How it works: /how-it-works   ·   Disable first-session hint: CLAUDE_MEM_WELCOME_HINT_ENABLED=false')}`,
-        `${pc.dim('Note: close all Claude Code sessions before uninstalling, or ~/.claude-mem will be recreated by active hooks.')}`,
+        `${pc.dim('Note: close all Claude Code sessions before uninstalling, or ~/.engram will be recreated by active hooks.')}`,
       ];
 
   if (isInteractive) {
     p.note(nextSteps.join('\n'), 'Next Steps');
     if (failedIDEs.length > 0) {
-      p.outro(pc.yellow('claude-mem installed with some IDE setup failures.'));
+      p.outro(pc.yellow('Engram installed with some IDE setup failures.'));
     } else {
-      p.outro(pc.green('claude-mem installed successfully!'));
+      p.outro(pc.green('Engram installed successfully!'));
     }
   } else {
     console.log('\n  Next Steps');
     nextSteps.forEach(l => console.log(`  ${l}`));
     if (failedIDEs.length > 0) {
-      console.log('\nclaude-mem installed with some IDE setup failures.');
+      console.log('\nEngram installed with some IDE setup failures.');
       process.exitCode = 1;
     } else {
-      console.log('\nclaude-mem installed successfully!');
+      console.log('\nEngram installed successfully!');
     }
   }
 }
@@ -1565,9 +1565,9 @@ export async function runRepairCommand(): Promise<void> {
   const cacheDir = pluginCacheDirectory(version);
 
   if (isInteractive) {
-    p.intro(pc.bgCyan(pc.black(' claude-mem repair ')));
+    p.intro(pc.bgCyan(pc.black(' engram repair ')));
   } else {
-    console.log('claude-mem repair');
+    console.log('engram repair');
   }
   log.info(`Version: ${pc.cyan(version)}`);
 
@@ -1596,8 +1596,8 @@ export async function runRepairCommand(): Promise<void> {
   ]);
 
   if (isInteractive) {
-    p.outro(pc.green('claude-mem repair complete.'));
+    p.outro(pc.green('Engram repair complete.'));
   } else {
-    console.log('claude-mem repair complete.');
+    console.log('Engram repair complete.');
   }
 }
