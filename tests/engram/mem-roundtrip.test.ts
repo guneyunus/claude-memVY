@@ -109,4 +109,32 @@ describe('exporter/importer file roundtrip', () => {
       rmSync(dirB, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
     }
   });
+
+  it('imports a NULL-content_hash observation idempotently (natural-key fallback)', () => {
+    const dirA = mkdtempSync(join(tmpdir(), 'engram-nullh-A-'));
+    const dirB = mkdtempSync(join(tmpdir(), 'engram-nullh-B-'));
+    const a = new ClaudeMemDatabase(join(dirA, 'a.db'));
+    const b = new ClaudeMemDatabase(join(dirB, 'b.db'));
+    try {
+      a.db.prepare(`INSERT INTO sdk_sessions
+        (content_session_id, memory_session_id, project, platform_source, started_at, started_at_epoch, status)
+        VALUES ('cs-n', 'ms-n', ?, 'claude', '2026-06-05T00:00:00Z', 1000, 'completed')`).run(PROJECT);
+      // content_hash NULL — the UNIQUE(memory_session_id, content_hash) can't dedup it.
+      a.db.prepare(`INSERT INTO observations
+        (memory_session_id, project, type, title, narrative, content_hash, created_at, created_at_epoch)
+        VALUES ('ms-n', ?, 'note', 'no hash', 'body', NULL, '2026-06-05T00:01:00Z', 1060)`).run(PROJECT);
+
+      const data = readProjectRows(a.db, PROJECT);
+      expect(data.observations[0].content_hash).toBeNull();
+
+      importRows(b.db, data);
+      importRows(b.db, data); // second import must NOT duplicate despite the null hash
+      expect(readProjectRows(b.db, PROJECT).observations.length).toBe(1);
+    } finally {
+      a.db.close(); b.db.close();
+      (globalThis as any).Bun?.gc?.(true);
+      rmSync(dirA, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
+      rmSync(dirB, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
+    }
+  });
 });

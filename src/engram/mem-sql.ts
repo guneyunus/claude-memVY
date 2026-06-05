@@ -50,6 +50,7 @@ export function readProjectRows(db: Database, project: string): ProjectRows {
 
 function insertFiltered(db: Database, table: string, row: Row, allow: Set<string>, conflict: string): boolean {
   const keys = Object.keys(row).filter((k) => allow.has(k) && k !== 'id');
+  if (keys.length === 0) return false; // nothing to insert (no overlapping columns)
   const sql = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')}) ${conflict}`;
   const res = db.prepare(sql).run(...keys.map((k) => row[k] as any));
   return res.changes > 0;
@@ -65,6 +66,13 @@ export function importRows(db: Database, data: ProjectRows): ImportCounts {
   const sumCols = tableColumns(db, 'session_summaries');
   const prmCols = tableColumns(db, 'user_prompts');
 
+  // Observations dedup on the real UNIQUE(memory_session_id, content_hash). When
+  // content_hash is NULL (e.g. legacy rows written by the old bulk import, which
+  // never set it), that UNIQUE can't dedup — NULLs are distinct in SQLite — so we
+  // fall back to a natural key. Summaries/prompts have NO unique constraint, so they
+  // pre-check a natural key; dedup resolution is created_at_epoch precision
+  // (same-epoch duplicates coalesce — acceptable, documented limitation).
+  const obsExists = db.prepare("SELECT 1 FROM observations WHERE memory_session_id = ? AND created_at_epoch = ? AND IFNULL(title,'') = IFNULL(?,'') LIMIT 1");
   const summaryExists = db.prepare('SELECT 1 FROM session_summaries WHERE memory_session_id = ? AND created_at_epoch = ? AND IFNULL(prompt_number,-1) = IFNULL(?,-1) LIMIT 1');
   const promptExists = db.prepare('SELECT 1 FROM user_prompts WHERE content_session_id = ? AND prompt_number = ? LIMIT 1');
 
@@ -73,7 +81,12 @@ export function importRows(db: Database, data: ProjectRows): ImportCounts {
       if (insertFiltered(db, 'sdk_sessions', s, sessCols, 'ON CONFLICT DO NOTHING')) counts.sessions++;
     }
     for (const o of d.observations) {
-      if (insertFiltered(db, 'observations', o, obsCols, 'ON CONFLICT(memory_session_id, content_hash) DO NOTHING')) counts.observations++;
+      if (o.content_hash == null) {
+        if (obsExists.get(o.memory_session_id as any, o.created_at_epoch as any, (o.title ?? null) as any)) continue;
+        if (insertFiltered(db, 'observations', o, obsCols, '')) counts.observations++;
+      } else if (insertFiltered(db, 'observations', o, obsCols, 'ON CONFLICT(memory_session_id, content_hash) DO NOTHING')) {
+        counts.observations++;
+      }
     }
     for (const su of d.summaries) {
       if (summaryExists.get(su.memory_session_id as any, su.created_at_epoch as any, (su.prompt_number ?? null) as any)) continue;

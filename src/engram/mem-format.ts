@@ -40,7 +40,7 @@ export function parseLine(line: string): Record<string, unknown> {
   return JSON.parse(line);
 }
 
-/** Serialize rows to a canonical ndjson body (sorted by created_at_epoch, then a stable tiebreaker). */
+/** Canonical ndjson body: each row sorted-key JSON, lines sorted lexicographically for stable git diffs. */
 export function serializeRows(rows: Record<string, unknown>[]): string {
   const lines = rows.map(serializeRow).sort();
   return lines.length ? lines.join('\n') + '\n' : '';

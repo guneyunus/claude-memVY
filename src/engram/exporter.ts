@@ -3,7 +3,7 @@ import { writeFileSync, mkdirSync, rmSync, existsSync, readdirSync } from 'node:
 import { join } from 'node:path';
 import { readProjectRows, type ProjectRows } from './mem-sql.js';
 import {
-  memDir, memFile, decisionsDir, statePath, serializeRows, ensureScaffold, readOrCreateManifest,
+  memFile, decisionsDir, statePath, serializeRows, ensureScaffold, readOrCreateManifest,
   type MemTable,
 } from './mem-format.js';
 
@@ -52,6 +52,8 @@ export function exportProject(db: Database, project: string, root: string): Proj
     for (const o of decisions) {
       writeFileSync(join(dDir, `${slugify(String(o.title))}-${String(o.content_hash).slice(0, 8)}.md`), renderDecision(o));
     }
+  } else if (existsSync(dDir) && readdirSync(dDir).length === 0) {
+    rmSync(dDir, { recursive: true, force: true }); // don't leave an empty decisions/ dir tracked
   }
   return rows;
 }
