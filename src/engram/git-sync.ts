@@ -1,4 +1,6 @@
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 export interface GitResult {
   ok: boolean;
@@ -33,8 +35,21 @@ export function hasRemote(root: string): boolean {
 /** Pull (rebase + autostash). No remote → no-op success. Conflict → abort + non-fatal. */
 export function gitPull(root: string): GitResult {
   if (!isGitRepo(root) || !hasRemote(root)) return { ok: true, stdout: 'no remote' };
+  // Never pull (and thus never `rebase --abort`) while the USER has an in-progress
+  // rebase/merge/cherry-pick — aborting would discard their conflict resolution.
+  const gitDir = git(root, ['rev-parse', '--git-dir']);
+  if (gitDir.ok) {
+    const gd = join(root, gitDir.stdout);
+    const inProgress =
+      existsSync(join(gd, 'rebase-merge')) || existsSync(join(gd, 'rebase-apply')) ||
+      existsSync(join(gd, 'MERGE_HEAD')) || existsSync(join(gd, 'CHERRY_PICK_HEAD')) ||
+      existsSync(join(gd, 'REVERT_HEAD'));
+    if (inProgress) return { ok: false, stdout: '', error: 'rebase/merge in progress; skipping pull' };
+  }
   const r = git(root, ['pull', '--rebase', '--autostash'], 30000);
-  if (!r.ok) git(root, ['rebase', '--abort']); // best-effort cleanup; ignore result
+  // Only OUR pull could have started a rebase (we skipped above if one pre-existed),
+  // so aborting on failure only cleans up a rebase we created.
+  if (!r.ok) git(root, ['rebase', '--abort']);
   return r;
 }
 

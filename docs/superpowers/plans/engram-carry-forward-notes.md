@@ -59,3 +59,24 @@ syncOut/syncIn are proven by the smoke test but NOT yet called by the worker
   sync failure never blocks the turn (git-sync is already non-throwing).
 - Both calls run inside the worker process where `DATA_DIR`/the DB handle and the
   project root are available; the resilient git wrapper handles offline/no-remote.
+
+**Go-live blockers surfaced by the Plan D code review (must handle at wiring time):**
+- **`syncOut` is NOT fully resilient** — only the git ops never throw; `exportProject`
+  (DB read / `writeFileSync`) CAN throw. The call site MUST wrap `syncOut(...)`/`syncIn(...)`
+  in try/catch so a failure never blocks the turn. Do not rely on git-sync alone.
+- **`cwd` is not threaded to the summarize endpoint.** The hook (`summarize.ts`) has
+  `input.cwd`, but `POST /api/sessions/summarize` (SessionRoutes) does not carry it. Thread
+  `cwd` into the body so the worker can compute `resolveProjectRuntime(cwd).root`. (The DB
+  handle is available via `DatabaseManager.getConnection()`.)
+- **Debounce is unimplemented.** "Export every Stop, push on a quiet threshold" needs a
+  per-project last-push timestamp under `<dataDir>` (NOT settings.json). Without it, every
+  Stop pushes → a commit per turn (data still converges via `*.ndjson merge=union`, but the
+  history is noisy).
+- **Push auth:** `gitPush` is `git push origin HEAD` with no credential helper. HTTPS remotes
+  without a configured credential manager (or SSH keys) silently fail (`ok:false`) — local
+  commits succeed, pushes don't. Document this for users; don't retry-spam pushes.
+- **Detached HEAD:** `push origin HEAD` fails (non-fatal) on a detached HEAD; the debounce/retry
+  logic should not keep retrying in that state.
+- **The runtime DB must live under the git-ignored `.mem/.runtime/`** (it does, via B2's
+  `CLAUDE_MEM_DATA_DIR`), so `git add .mem` never stages the binary db. Verify the project
+  `.gitignore` (`.mem/.runtime/`, written by `ensureScaffold`) is committed.

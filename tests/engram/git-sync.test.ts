@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'bun:test';
 import { join } from 'node:path';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
-import { isGitRepo, hasRemote, gitCommitPaths } from '../../src/engram/git-sync.js';
+import { isGitRepo, hasRemote, gitCommitPaths, gitPull } from '../../src/engram/git-sync.js';
 
 function initRepo(dir: string): void {
   execFileSync('git', ['init', '-q'], { cwd: dir, windowsHide: true });
@@ -42,5 +42,28 @@ describe('git-sync wrapper', () => {
       const c = gitCommitPaths(dir, ['x'], 'm'); // not a git repo
       expect(c.ok).toBe(false); // resilient: returns, does not throw
     } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+
+  it('skips pull (never aborts) when the user has a rebase in progress', () => {
+    const remote = mkdtempSync(join(tmpdir(), 'engram-rmt-'));
+    const repo = mkdtempSync(join(tmpdir(), 'engram-rebase-'));
+    try {
+      execFileSync('git', ['init', '--bare', '-q', remote], { windowsHide: true });
+      execFileSync('git', ['clone', '-q', remote, repo], { windowsHide: true });
+      execFileSync('git', ['config', 'user.email', 'test@engram.local'], { cwd: repo, windowsHide: true });
+      execFileSync('git', ['config', 'user.name', 'Engram Test'], { cwd: repo, windowsHide: true });
+      // Simulate a paused rebase: the rebase-merge state dir exists.
+      const gd = execFileSync('git', ['rev-parse', '--git-dir'], { cwd: repo, encoding: 'utf8', windowsHide: true }).trim();
+      const rebaseDir = join(repo, gd, 'rebase-merge');
+      mkdirSync(rebaseDir, { recursive: true });
+
+      const r = gitPull(repo);
+      expect(r.ok).toBe(false);
+      expect(r.error).toContain('in progress');
+      expect(existsSync(rebaseDir)).toBe(true); // must NOT have been aborted
+    } finally {
+      rmSync(remote, { recursive: true, force: true });
+      rmSync(repo, { recursive: true, force: true });
+    }
   });
 });
