@@ -104,10 +104,17 @@ args[0] = fixBrokenScriptPath(args[0]);
 try {
   const mod = await import('./engram-resolve.cjs');
   const resolveRuntimeEnv = mod.default?.resolveRuntimeEnv ?? mod.resolveRuntimeEnv;
+  const claimPort = mod.default?.claimPort ?? mod.claimPort;
   if (typeof resolveRuntimeEnv === 'function') {
     const rt = resolveRuntimeEnv(process.cwd());
     if (!process.env.CLAUDE_MEM_DATA_DIR) process.env.CLAUDE_MEM_DATA_DIR = rt.dataDir;
-    if (!process.env.CLAUDE_MEM_WORKER_PORT) process.env.CLAUDE_MEM_WORKER_PORT = String(rt.port);
+    if (!process.env.CLAUDE_MEM_WORKER_PORT) {
+      // Claim a real free port for this project (deterministic candidate, then
+      // increment on conflict), persisted to <dataDir>/worker.port. Falls back
+      // to the bare candidate if claimPort is unavailable.
+      const port = typeof claimPort === 'function' ? await claimPort(rt.dataDir, rt.port) : rt.port;
+      process.env.CLAUDE_MEM_WORKER_PORT = String(port);
+    }
   }
 } catch {
   // leave env as-is (global default); never break the hook on resolver failure

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { spawnSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
-import { mkdtempSync, rmSync, realpathSync } from 'node:fs';
+import { mkdtempSync, rmSync, realpathSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { resolveProjectRuntime } from '../../src/engram/project-root.js';
@@ -39,7 +39,12 @@ describe('bun-runner per-project injection (isolated)', () => {
 
       const printed = JSON.parse(res.stdout.trim());
       expect(printed.dataDir).toBe(expected.dataDir);
-      expect(Number(printed.port)).toBe(expected.port);
+      // Port is CLAIMED now: in range, and >= the candidate (claimPort probes
+      // from the candidate upward). The chosen port is persisted to worker.port.
+      const claimed = Number(printed.port);
+      expect(claimed).toBeGreaterThanOrEqual(expected.port);
+      expect(claimed).toBeLessThan(37950);
+      expect(existsSync(join(expected.dataDir, 'worker.port'))).toBe(true);
     } finally {
       rmSync(repo, { recursive: true, force: true });
     }
