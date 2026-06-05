@@ -15,9 +15,13 @@ export function engramProjectRoot(dataDir: string): string | null {
   return null;
 }
 
-/** Sync is on when we're a per-project worker and the kill-switch isn't set. */
+/**
+ * Sync is OPT-IN: enabled only when we're a per-project worker AND the user set
+ * `CLAUDE_MEM_ENGRAM_SYNC=true`. So installing Engram (build-and-sync) is inert —
+ * it never auto-commits/pushes a project's memory until explicitly enabled.
+ */
 export function engramSyncEnabled(dataDir: string): boolean {
-  return engramProjectRoot(dataDir) !== null && process.env.CLAUDE_MEM_ENGRAM_SYNC !== 'false';
+  return engramProjectRoot(dataDir) !== null && process.env.CLAUDE_MEM_ENGRAM_SYNC === 'true';
 }
 
 /**
@@ -27,8 +31,8 @@ export function engramSyncEnabled(dataDir: string): boolean {
  */
 export function engramSyncInOnBoot(db: Database, dataDir: string, log?: (m: string) => void): void {
   try {
-    const root = engramProjectRoot(dataDir);
-    if (!root || process.env.CLAUDE_MEM_ENGRAM_SYNC === 'false') return;
+    if (!engramSyncEnabled(dataDir)) return;
+    const root = engramProjectRoot(dataDir)!;
     const r = syncIn(db, root, { pull: true });
     log?.(`syncIn on boot: pulled=${r.pulled} imported=${r.imported} root=${root}`);
   } catch (e) {
@@ -49,8 +53,8 @@ export function engramSyncOutAfterStop(
   log?: (m: string) => void,
 ): void {
   try {
-    const root = engramProjectRoot(dataDir);
-    if (!root || !project || process.env.CLAUDE_MEM_ENGRAM_SYNC === 'false') return;
+    if (!engramSyncEnabled(dataDir) || !project) return;
+    const root = engramProjectRoot(dataDir)!;
     const r = syncOut(db, project, root, { push: true });
     log?.(`syncOut after stop: committed=${r.committed} pushed=${r.pushed} project=${project}`);
   } catch (e) {

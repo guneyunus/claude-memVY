@@ -20,14 +20,14 @@ describe('worker-sync helpers', () => {
     expect(engramProjectRoot(join(homedir(), '.engram'))).toBeNull();
   });
 
-  it('engramSyncEnabled: on for per-project unless killed; off in global mode', () => {
+  it('engramSyncEnabled: OPT-IN — only per-project AND CLAUDE_MEM_ENGRAM_SYNC=true', () => {
     const prev = process.env.CLAUDE_MEM_ENGRAM_SYNC;
     try {
       delete process.env.CLAUDE_MEM_ENGRAM_SYNC;
-      expect(engramSyncEnabled(perProject(resolve('/r/x')))).toBe(true);
-      expect(engramSyncEnabled(join(homedir(), '.engram'))).toBe(false);
-      process.env.CLAUDE_MEM_ENGRAM_SYNC = 'false';
-      expect(engramSyncEnabled(perProject(resolve('/r/x')))).toBe(false);
+      expect(engramSyncEnabled(perProject(resolve('/r/x')))).toBe(false); // unset -> off (inert install)
+      process.env.CLAUDE_MEM_ENGRAM_SYNC = 'true';
+      expect(engramSyncEnabled(perProject(resolve('/r/x')))).toBe(true);  // opted in
+      expect(engramSyncEnabled(join(homedir(), '.engram'))).toBe(false);  // global mode -> off
     } finally {
       if (prev === undefined) delete process.env.CLAUDE_MEM_ENGRAM_SYNC;
       else process.env.CLAUDE_MEM_ENGRAM_SYNC = prev;
@@ -35,6 +35,8 @@ describe('worker-sync helpers', () => {
   });
 
   it('the worker wiring (boot syncIn + stop syncOut) propagates memory via real git', () => {
+    const prevFlag = process.env.CLAUDE_MEM_ENGRAM_SYNC;
+    process.env.CLAUDE_MEM_ENGRAM_SYNC = 'true'; // opt in for this test
     const remote = mkdtempSync(join(tmpdir(), 'ws-remote-'));
     const A = mkdtempSync(join(tmpdir(), 'ws-A-'));
     const B = mkdtempSync(join(tmpdir(), 'ws-B-'));
@@ -73,6 +75,8 @@ describe('worker-sync helpers', () => {
     } finally {
       dbA.db.close(); dbB?.db?.close?.(); (globalThis as any).Bun?.gc?.(true);
       for (const d of [remote, A, B, dbs]) rmSync(d, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
+      if (prevFlag === undefined) delete process.env.CLAUDE_MEM_ENGRAM_SYNC;
+      else process.env.CLAUDE_MEM_ENGRAM_SYNC = prevFlag;
     }
   });
 });
