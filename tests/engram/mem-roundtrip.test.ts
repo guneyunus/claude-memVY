@@ -25,6 +25,11 @@ function seed(db: any): void {
     VALUES (?, 1, 'do the thing', ?, ?)`).run('cs-1', '2026-06-05T00:00:30Z', 1030);
 }
 
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { exportProject } from '../../src/engram/exporter.js';
+import { importProject } from '../../src/engram/importer.js';
+import { memFile, decisionsDir, statePath, manifestPath } from '../../src/engram/mem-format.js';
+
 describe('mem-sql roundtrip', () => {
   it('exports a project and re-imports it into a fresh DB with matching rows; idempotent', () => {
     const dirA = mkdtempSync(join(tmpdir(), 'engram-dbA-'));
@@ -57,6 +62,46 @@ describe('mem-sql roundtrip', () => {
     } finally {
       a.db.close(); b.db.close();
       rmSync(dirA, { recursive: true, force: true });
+      rmSync(dirB, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('exporter/importer file roundtrip', () => {
+  it('exportProject writes .mem artifacts; importProject loads them into a fresh DB', () => {
+    const repoA = mkdtempSync(join(tmpdir(), 'engram-repoA-'));
+    const dirB = mkdtempSync(join(tmpdir(), 'engram-repoB-'));
+    const a = new ClaudeMemDatabase(join(dirB, 'a.db')); // db lives outside the repo dir
+    const b = new ClaudeMemDatabase(join(dirB, 'b.db'));
+    try {
+      seed(a.db);
+      exportProject(a.db, PROJECT, repoA);
+
+      // Artifacts exist.
+      expect(existsSync(memFile(repoA, 'observations'))).toBe(true);
+      expect(existsSync(manifestPath(repoA))).toBe(true);
+      expect(existsSync(statePath(repoA))).toBe(true);
+      expect(readFileSync(statePath(repoA), 'utf8')).toContain('env injection works'); // from the summary
+      // The decision-type observation produced a decisions/*.md.
+      const decisions = existsSync(decisionsDir(repoA)) ? readdirSync(decisionsDir(repoA)) : [];
+      expect(decisions.length).toBeGreaterThanOrEqual(1);
+
+      // Import into a fresh DB and verify.
+      const counts = importProject(b.db, repoA);
+      expect(counts.observations).toBe(1);
+      const bRows = readProjectRows(b.db, PROJECT);
+      expect(bRows.observations[0].content_hash).toBe('hash-abc');
+
+      // Re-export from B must be byte-identical to A's ndjson (canonical determinism).
+      const repoB = mkdtempSync(join(tmpdir(), 'engram-repoB2-'));
+      try {
+        exportProject(b.db, PROJECT, repoB);
+        expect(readFileSync(memFile(repoB, 'observations'), 'utf8'))
+          .toBe(readFileSync(memFile(repoA, 'observations'), 'utf8'));
+      } finally { rmSync(repoB, { recursive: true, force: true }); }
+    } finally {
+      a.db.close(); b.db.close();
+      rmSync(repoA, { recursive: true, force: true });
       rmSync(dirB, { recursive: true, force: true });
     }
   });
