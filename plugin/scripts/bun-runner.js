@@ -85,6 +85,24 @@ if (args.length === 0) {
 
 args[0] = fixBrokenScriptPath(args[0]);
 
+// Engram: inject the per-project runtime (DATA_DIR + worker port) from the
+// hook's cwd BEFORE spawning the worker, so the child's paths.ts freezes the
+// project-local DATA_DIR and getWorkerPort selects the project-local port.
+// SOURCE OF TRUTH for the values: src/engram/project-root.ts (mirrored in
+// ./engram-resolve.cjs). Fail-open: any error leaves env untouched so the
+// worker falls back to the global ~/.engram behavior — a hook is never broken.
+try {
+  const mod = await import('./engram-resolve.cjs');
+  const resolveRuntimeEnv = mod.default?.resolveRuntimeEnv ?? mod.resolveRuntimeEnv;
+  if (typeof resolveRuntimeEnv === 'function') {
+    const rt = resolveRuntimeEnv(process.cwd());
+    if (!process.env.CLAUDE_MEM_DATA_DIR) process.env.CLAUDE_MEM_DATA_DIR = rt.dataDir;
+    if (!process.env.CLAUDE_MEM_WORKER_PORT) process.env.CLAUDE_MEM_WORKER_PORT = String(rt.port);
+  }
+} catch {
+  // leave env as-is (global default); never break the hook on resolver failure
+}
+
 const bunPath = findBun();
 
 if (!bunPath) {
@@ -145,7 +163,7 @@ if (child.stdin) {
     // Issue #2188: empty/missing stdin previously masked by `|| '{}'` fallback,
     // which silently hid WSL bash failures (e.g. hooks invoked under a broken
     // shell that never piped a payload). Surface the failure mode instead.
-    const dataDir = process.env.CLAUDE_MEM_DATA_DIR || join(homedir(), '.claude-mem');
+    const dataDir = process.env.CLAUDE_MEM_DATA_DIR || join(homedir(), '.engram');
     const payloadType = stdinData === null
       ? 'null (no data event or stream error)'
       : stdinData === undefined
