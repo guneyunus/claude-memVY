@@ -96,11 +96,13 @@ args[0] = fixBrokenScriptPath(args[0]);
 // root before invoking hooks (stdin's authoritative `cwd` is read later by
 // collectStdin(), too late to influence the spawned child's frozen DATA_DIR).
 // Cost: resolveRuntimeEnv runs `git rev-parse` synchronously (~tens of ms) on
-// every hook invocation; no cross-process cache yet (Plan B4 may cache the
-// resolved root under <dataDir> and short-circuit).
-// LIMITATION: the port is a deterministic candidate with NO collision handling —
-// two projects whose roots hash to the same port would share a worker.
-// Bind-or-increment + /api/whoami verification is deferred to Plan B4.
+// every hook invocation, and claimPort does one bind-probe (+ one localhost
+// /api/whoami GET when the persisted port is occupied) — a few ms. The resolved
+// root is not cached across hook processes yet.
+// Port collision (Plan B4): claimPort binds-or-increments from the deterministic
+// candidate to a free port, persists it to <dataDir>/worker.port, and re-claims
+// if a persisted port is squatted by another project (verified via /api/whoami),
+// so two projects never share a worker.
 try {
   const mod = await import('./engram-resolve.cjs');
   const resolveRuntimeEnv = mod.default?.resolveRuntimeEnv ?? mod.resolveRuntimeEnv;
