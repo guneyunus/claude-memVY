@@ -140,11 +140,10 @@ async function runServerBetaKeysRotateCommand(): Promise<void> {
   const { rotateServerBetaApiKey, persistServerBetaSettings } = await import(
     '../../services/hooks/server-beta-bootstrap.js'
   );
-  const { SettingsDefaultsManager } = await import('../../shared/SettingsDefaultsManager.js');
-  const { join } = await import('path');
   const { existsSync, readFileSync } = await import('fs');
+  const { USER_SETTINGS_PATH } = await import('../../shared/paths.js');
 
-  const settingsPath = join(SettingsDefaultsManager.get('CLAUDE_MEM_DATA_DIR'), 'settings.json');
+  const settingsPath = USER_SETTINGS_PATH; // global config (Plan B3) — server-beta API key is a secret
   let previousApiKeyId: string | null = null;
   if (existsSync(settingsPath)) {
     try {
