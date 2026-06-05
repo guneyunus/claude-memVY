@@ -1,10 +1,10 @@
 <h1 align="center">
   <br>
-  <a href="https://github.com/thedotmack/claude-mem">
+  <a href="https://github.com/guneyunus/claude-memVY">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-dark-mode.webp">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp">
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp" alt="Claude-Mem" width="400">
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/guneyunus/claude-memVY/main/docs/public/claude-mem-logo-for-dark-mode.webp">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/guneyunus/claude-memVY/main/docs/public/claude-mem-logo-for-light-mode.webp">
+      <img src="https://raw.githubusercontent.com/guneyunus/claude-memVY/main/docs/public/claude-mem-logo-for-light-mode.webp" alt="Engram" width="400">
     </picture>
   </a>
   <br>
@@ -57,18 +57,8 @@
   <a href="package.json">
     <img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg" alt="Node">
   </a>
-  <a href="https://github.com/thedotmack/awesome-claude-code">
-    <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Claude Code">
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://trendshift.io/repositories/15496" target="_blank">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge-dark.svg">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge.svg">
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge.svg" alt="thedotmack/claude-mem | Trendshift" width="250" height="55"/>
-    </picture>
+  <a href="https://github.com/guneyunus/claude-memVY">
+    <img src="https://img.shields.io/badge/GitHub-guneyunus%2Fclaude--memVY-blue.svg" alt="GitHub">
   </a>
 </p>
 
@@ -77,32 +67,13 @@
 <table align="center">
   <tr>
     <td align="center">
-      <a href="https://github.com/thedotmack/claude-mem">
+      <a href="https://github.com/guneyunus/claude-memVY">
         <picture>
           <img
-            src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/cm-preview.gif"
-            alt="Claude-Mem Preview"
+            src="https://raw.githubusercontent.com/guneyunus/claude-memVY/main/docs/public/cm-preview.gif"
+            alt="Engram Preview"
             width="500"
           >
-        </picture>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://www.star-history.com/#thedotmack/claude-mem&Date">
-        <picture>
-          <source
-            media="(prefers-color-scheme: dark)"
-            srcset="https://api.star-history.com/image?repos=thedotmack/claude-mem&type=date&theme=dark&legend=top-left"
-          />
-          <source
-            media="(prefers-color-scheme: light)"
-            srcset="https://api.star-history.com/image?repos=thedotmack/claude-mem&type=date&legend=top-left"
-          />
-          <img
-            alt="Star History Chart"
-            src="https://api.star-history.com/image?repos=thedotmack/claude-mem&type=date&legend=top-left"
-            width="500"
-          />
         </picture>
       </a>
     </td>
@@ -120,7 +91,7 @@
 </p>
 
 <p align="center">
-  Claude-Mem seamlessly preserves context across sessions by automatically capturing tool usage observations, generating semantic summaries, and making them available to future sessions. This enables Claude to maintain continuity of knowledge about projects even after sessions end or reconnect.
+  Engram seamlessly preserves context across sessions by automatically capturing tool usage observations, generating semantic summaries, and making them available to future sessions. This enables Claude to maintain continuity of knowledge about projects even after sessions end or reconnect.
 </p>
 
 ---
@@ -130,35 +101,35 @@
 Install with a single command:
 
 ```bash
-npx claude-mem install
+npx @guneyunus/engram install
 ```
 
 Or install for Gemini CLI (auto-detects `~/.gemini`):
 
 ```bash
-npx claude-mem install --ide gemini-cli
+npx @guneyunus/engram install --ide gemini-cli
 ```
 Or install for OpenCode:
 
 ```bash
-npx claude-mem install --ide opencode
+npx @guneyunus/engram install --ide opencode
 ```
 
 Or install from the plugin marketplace inside Claude Code:
 
 ```bash
-/plugin marketplace add thedotmack/claude-mem
+/plugin marketplace add guneyunus/claude-memVY
 
-/plugin install claude-mem
+/plugin install engram
 ```
 
 Restart Claude Code or Gemini CLI. Context from previous sessions will automatically appear in new sessions.
 
-> **Note:** Claude-Mem is also published on npm, but `npm install -g claude-mem` installs the **SDK/library only** — it does not register the plugin hooks or set up the worker service. Always install via `npx claude-mem install` or the `/plugin` commands above.
+> **Note:** Engram is also published on npm, but `npm install -g @guneyunus/engram` installs the **SDK/library only** — it does not register the plugin hooks or set up the worker service. Always install via `npx @guneyunus/engram install` or the `/plugin` commands above.
 
 ### 🦞 OpenClaw Gateway
 
-Install claude-mem as a persistent memory plugin on [OpenClaw](https://openclaw.ai) gateways with a single command:
+Install Engram as a persistent memory plugin on [OpenClaw](https://openclaw.ai) gateways with a single command:
 
 ```bash
 curl -fsSL https://install.cmem.ai/openclaw.sh | bash
@@ -189,20 +160,20 @@ The installer handles dependencies, plugin setup, AI provider configuration, wor
 
 - **[Installation Guide](https://docs.claude-mem.ai/installation)** - Quick start & advanced installation
 - **[Gemini CLI Setup](https://docs.claude-mem.ai/gemini-cli/setup)** - Dedicated guide for Google's Gemini CLI integration
-- **[Usage Guide](https://docs.claude-mem.ai/usage/getting-started)** - How Claude-Mem works automatically
+- **[Usage Guide](https://docs.claude-mem.ai/usage/getting-started)** - How Engram works automatically
 - **[Search Tools](https://docs.claude-mem.ai/usage/search-tools)** - Query your project history with natural language
 - **[Beta Features](https://docs.claude-mem.ai/beta-features)** - Try experimental features like Endless Mode
 
 ### Best Practices
 
 - **[Context Engineering](https://docs.claude-mem.ai/context-engineering)** - AI agent context optimization principles
-- **[Progressive Disclosure](https://docs.claude-mem.ai/progressive-disclosure)** - Philosophy behind Claude-Mem's context priming strategy
+- **[Progressive Disclosure](https://docs.claude-mem.ai/progressive-disclosure)** - Philosophy behind Engram's context priming strategy
 
 ### Architecture
 
 - **[Overview](https://docs.claude-mem.ai/architecture/overview)** - System components & data flow
 - **[Architecture Evolution](https://docs.claude-mem.ai/architecture-evolution)** - The journey from v3 to v5
-- **[Hooks Architecture](https://docs.claude-mem.ai/hooks-architecture)** - How Claude-Mem uses lifecycle hooks
+- **[Hooks Architecture](https://docs.claude-mem.ai/hooks-architecture)** - How Engram uses lifecycle hooks
 - **[Hooks Reference](https://docs.claude-mem.ai/architecture/hooks)** - 7 hook scripts explained
 - **[Worker Service](https://docs.claude-mem.ai/architecture/worker-service)** - HTTP API & Bun management
 - **[Database](https://docs.claude-mem.ai/architecture/database)** - SQLite schema & FTS5 search
@@ -233,7 +204,7 @@ See [Architecture Overview](https://docs.claude-mem.ai/architecture/overview) fo
 
 ## MCP Search Tools
 
-Claude-Mem provides intelligent memory search through **4 MCP tools** following a token-efficient **3-layer workflow pattern**:
+Engram provides intelligent memory search through **4 MCP tools** following a token-efficient **3-layer workflow pattern**:
 
 **The 3-Layer Workflow:**
 
@@ -272,7 +243,7 @@ See [Search Tools Guide](https://docs.claude-mem.ai/usage/search-tools) for deta
 
 ## Beta Features
 
-Claude-Mem offers a **beta channel** with experimental features like **Endless Mode** (biomimetic memory architecture for extended sessions). Switch between stable and beta versions from the web viewer UI at http://localhost:37777 → Settings.
+Engram offers a **beta channel** with experimental features like **Endless Mode** (biomimetic memory architecture for extended sessions). Switch between stable and beta versions from the web viewer UI at http://localhost:37777 → Settings.
 
 See **[Beta Features Documentation](https://docs.claude-mem.ai/beta-features)** for details on Endless Mode and how to try it.
 
@@ -301,7 +272,7 @@ Make sure Node.js and npm are installed and added to your PATH. Download the lat
 
 ## Configuration
 
-Settings are managed in `~/.claude-mem/settings.json` (auto-created with defaults on first run). Configure AI model, worker port, data directory, log level, and context injection settings.
+Settings are managed in `~/.engram/settings.json` (auto-created with defaults on first run). Configure AI model, worker port, data directory, log level, and context injection settings.
 
 See the **[Configuration Guide](https://docs.claude-mem.ai/configuration)** for all available settings and examples.
 
@@ -315,7 +286,7 @@ This option controls both:
 
 #### How to Configure
 
-Edit your settings file at `~/.claude-mem/settings.json`:
+Edit your settings file at `~/.engram/settings.json`:
 
 ```json
 {
@@ -326,7 +297,7 @@ Edit your settings file at `~/.claude-mem/settings.json`:
 Modes are defined in `plugin/modes/`. To see all available modes locally:
 
 ```bash
-ls ~/.claude/plugins/marketplaces/thedotmack/plugin/modes/
+ls ~/.claude/plugins/marketplaces/engram/plugin/modes/
 ```
 
 #### Available Modes
@@ -365,7 +336,7 @@ See the **[Troubleshooting Guide](https://docs.claude-mem.ai/troubleshooting)** 
 Create comprehensive bug reports with the automated generator:
 
 ```bash
-cd ~/.claude/plugins/marketplaces/thedotmack
+cd ~/.claude/plugins/marketplaces/engram
 npm run bug-report
 ```
 
@@ -385,7 +356,7 @@ See [Development Guide](https://docs.claude-mem.ai/development) for contribution
 
 ## License
 
-Claude-Mem is licensed under the Apache License 2.0.
+Engram is licensed under the Apache License 2.0.
 
 We chose Apache-2.0 because durable agentic memory should be easy to embed in
 developer tools, local agents, MCP servers, enterprise systems, robotics stacks,
@@ -402,11 +373,9 @@ open/commercial boundary.
 ## Support
 
 - **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/thedotmack/claude-mem/issues)
-- **Repository**: [github.com/thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)
-- **Official X Account**: [@Claude_Memory](https://x.com/Claude_Memory)
-- **Official Discord**: [Join Discord](https://discord.com/invite/J4wttp9vDu)
-- **Author**: Alex Newman ([@thedotmack](https://github.com/thedotmack))
+- **Issues**: [GitHub Issues](https://github.com/guneyunus/claude-memVY/issues)
+- **Repository**: [github.com/guneyunus/claude-memVY](https://github.com/guneyunus/claude-memVY)
+- **Upstream (Apache-2.0)**: Forked from [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)
 
 ---
 
@@ -416,4 +385,4 @@ open/commercial boundary.
 
 ### What About $CMEM?
 
-$CMEM is a solana token created by a 3rd party without Claude-Mem's prior consent, but officially embraced by the creator of Claude-Mem (Alex Newman, @thedotmack). The token acts as a community catalyst for growth and a vehicle for bringing real-time agent data to the developers and knowledge workers that need it most. $CMEM: 2TsmuYUrsctE57VLckZBYEEzdokUF8j8e1GavekWBAGS
+$CMEM is a solana token created by a 3rd party without Engram's prior consent, but officially embraced by the creator of Engram (Alex Newman, @thedotmack). The token acts as a community catalyst for growth and a vehicle for bringing real-time agent data to the developers and knowledge workers that need it most. $CMEM: 2TsmuYUrsctE57VLckZBYEEzdokUF8j8e1GavekWBAGS
