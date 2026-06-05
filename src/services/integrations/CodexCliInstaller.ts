@@ -12,7 +12,7 @@ const CODEX_TRANSCRIPT_WATCH_CONFIG_PATH = paths.transcriptsConfig();
 const CODEX_CONFIG_PATH = path.join(CODEX_DIR, 'config.toml');
 const MARKETPLACE_NAME = 'engram-local';
 const CODEX_PLUGIN_ID = `engram@${MARKETPLACE_NAME}`;
-const LEGACY_CODEX_PLUGIN_IDS = ['engram@engram'];
+const LEGACY_CODEX_PLUGIN_IDS = ['claude-mem@claude-mem-local', 'claude-mem@thedotmack'];
 const MIN_CODEX_MARKETPLACE_VERSION = '0.128.0';
 const REQUIRED_MARKETPLACE_FILES = [
   path.join('.agents', 'plugins', 'marketplace.json'),

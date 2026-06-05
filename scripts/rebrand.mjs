@@ -173,7 +173,8 @@ const PLAN = [
     edits: [
       { from: "const MARKETPLACE_NAME = 'claude-mem-local';", to: "const MARKETPLACE_NAME = 'engram-local';" },
       { from: 'const CODEX_PLUGIN_ID = `claude-mem@${MARKETPLACE_NAME}`;', to: 'const CODEX_PLUGIN_ID = `engram@${MARKETPLACE_NAME}`;' },
-      { from: "'claude-mem@thedotmack'", to: "'engram@engram'" },
+      // NOTE: LEGACY_CODEX_PLUGIN_IDS intentionally KEEPS the old claude-mem ids
+      // (they are disabled to migrate old installs) — do NOT rebrand them.
     ],
   },
   {
