@@ -5,40 +5,40 @@ import {
 } from '../../src/services/integrations/CodexCliInstaller.js';
 
 describe('Codex CLI installer config repair', () => {
-  it('adds claude-mem plugin enablement when missing', () => {
-    const result = setTomlPluginEnabled('model = "gpt-5.5"\n', 'claude-mem@claude-mem-local', true);
+  it('adds engram plugin enablement when missing', () => {
+    const result = setTomlPluginEnabled('model = "gpt-5.5"\n', 'engram@engram-local', true);
 
-    expect(result).toContain('[plugins."claude-mem@claude-mem-local"]');
+    expect(result).toContain('[plugins."engram@engram-local"]');
     expect(result).toContain('enabled = true');
   });
 
   it('updates existing plugin enablement in place', () => {
     const input = [
-      '[plugins."claude-mem@thedotmack"]',
+      '[plugins."engram@engram"]',
       'enabled = true',
       '',
-      '[marketplaces.claude-mem-local]',
+      '[marketplaces.engram-local]',
       'source_type = "git"',
       '',
     ].join('\n');
 
-    const result = setTomlPluginEnabled(input, 'claude-mem@thedotmack', false);
+    const result = setTomlPluginEnabled(input, 'engram@engram', false);
 
-    expect(result).toContain('[plugins."claude-mem@thedotmack"]\nenabled = false');
-    expect(result).toContain('[marketplaces.claude-mem-local]');
+    expect(result).toContain('[plugins."engram@engram"]\nenabled = false');
+    expect(result).toContain('[marketplaces.engram-local]');
   });
 
   it('inserts enabled into an existing plugin section without touching the next section', () => {
     const input = [
-      '[plugins."claude-mem@claude-mem-local"]',
+      '[plugins."engram@engram-local"]',
       '',
       '[hooks.state]',
       '',
     ].join('\n');
 
-    const result = setTomlPluginEnabled(input, 'claude-mem@claude-mem-local', true);
+    const result = setTomlPluginEnabled(input, 'engram@engram-local', true);
 
-    expect(result).toContain('[plugins."claude-mem@claude-mem-local"]\nenabled = true\n');
+    expect(result).toContain('[plugins."engram@engram-local"]\nenabled = true\n');
     expect(result).toContain('[hooks.state]');
   });
 
@@ -47,7 +47,7 @@ describe('Codex CLI installer config repair', () => {
       '[features]',
       'shell_snapshot = true',
       '',
-      '[plugins."claude-mem@claude-mem-local"]',
+      '[plugins."engram@engram-local"]',
       'enabled = true',
       '',
     ].join('\n');
@@ -55,7 +55,7 @@ describe('Codex CLI installer config repair', () => {
     const result = setTomlFeatureEnabled(input, 'hooks', true);
 
     expect(result).toContain('[features]\nhooks = true\nshell_snapshot = true');
-    expect(result).toContain('[plugins."claude-mem@claude-mem-local"]');
+    expect(result).toContain('[plugins."engram@engram-local"]');
     expect(result).not.toContain('codex_hooks');
   });
 });

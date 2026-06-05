@@ -4,13 +4,13 @@
     "name": "Alex Newman"
   },
   "metadata": {
-    "description": "Plugins by Alex Newman (thedotmack)",
-    "homepage": "https://github.com/thedotmack/claude-mem"
+    "description": "Engram plugins",
+    "homepage": "https://github.com/guneyunus/claude-memVY"
   },
   "plugins": [
     {
       "name": "engram",
-      "version": "13.4.0",
+      "version": "1.0.0",
       "source": "./plugin",
       "description": "Engram: project-local, git-native memory for Claude Code"
     }

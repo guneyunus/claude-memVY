@@ -127,7 +127,11 @@ const PLAN = [
   // ---- Plan E (full distribution rebrand): marketplace slug + plugin identifier + repo ----
   {
     file: '.claude-plugin/marketplace.json',
-    edits: [ { from: '"name": "thedotmack",', to: '"name": "engram",' } ],
+    edits: [
+      { from: '"name": "thedotmack",', to: '"name": "engram",' },
+      { from: '"description": "Plugins by Alex Newman (thedotmack)"', to: '"description": "Engram plugins"' },
+      { from: '"homepage": "https://github.com/thedotmack/claude-mem"', to: '"homepage": "https://github.com/guneyunus/claude-memVY"' },
+    ],
   },
   {
     file: '.agents/plugins/marketplace.json',

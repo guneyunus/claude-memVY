@@ -26,7 +26,7 @@ function commandHooksFrom(relativePath: string): string[] {
 
 function mcpStartupCommandFrom(relativePath: string): string {
   const parsed = readJson(relativePath);
-  return parsed.mcpServers['mcp-search'].args[1];
+  return parsed.mcpServers['engram'].args[1];
 }
 
 describe('Plugin Distribution - Skills', () => {
@@ -87,11 +87,11 @@ describe('Plugin Distribution - Codex Marketplace', () => {
   it('MCP launcher can recover without plugin root environment variables', () => {
     const mcpPath = path.join(projectRoot, 'plugin/.mcp.json');
     const mcp = JSON.parse(readFileSync(mcpPath, 'utf-8'));
-    const command = mcp.mcpServers['mcp-search'].args.join(' ');
+    const command = mcp.mcpServers['engram'].args.join(' ');
 
-    expect(command).toContain('.codex/plugins/cache/claude-mem-local/claude-mem');
-    expect(command).toContain('plugins/cache/thedotmack/claude-mem');
-    expect(command).toContain('claude-mem: mcp server not found');
+    expect(command).toContain('.codex/plugins/cache/engram-local/engram');
+    expect(command).toContain('plugins/cache/engram/engram');
+    expect(command).toContain('engram: mcp server not found');
   });
 });
 
@@ -110,7 +110,7 @@ describe('Plugin Distribution - hooks.json Integrity', () => {
   });
 
   it('should include CLAUDE_PLUGIN_ROOT fallback in all hook commands (#1215)', () => {
-    const expectedFallbackPath = '$_C/plugins/marketplaces/thedotmack/plugin';
+    const expectedFallbackPath = '$_C/plugins/marketplaces/engram/plugin';
 
     for (const command of commandHooksFrom('plugin/hooks/hooks.json')) {
       expect(command).toContain(expectedFallbackPath);
@@ -118,8 +118,8 @@ describe('Plugin Distribution - hooks.json Integrity', () => {
   });
 
   it('should try cache path before marketplaces fallback in all hook commands (#1533)', () => {
-    const cachePath = '$_C/plugins/cache/thedotmack/claude-mem';
-    const marketplacesPath = '$_C/plugins/marketplaces/thedotmack/plugin';
+    const cachePath = '$_C/plugins/cache/engram/engram';
+    const marketplacesPath = '$_C/plugins/marketplaces/engram/plugin';
 
     for (const command of commandHooksFrom('plugin/hooks/hooks.json')) {
       expect(command).toContain(cachePath);
@@ -136,12 +136,12 @@ describe('Plugin Distribution - Startup Root Resolution', () => {
       expect(command).toContain('${CLAUDE_CONFIG_DIR:-$HOME/.claude}');
       expect(command).toContain('_E="${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT:-}}"');
       expect(command).toContain('while IFS= read -r _R');
-      expect(command).toContain('$_C/plugins/marketplaces/thedotmack/plugin');
-      expect(command).toContain('$_C/plugins/cache/thedotmack/claude-mem');
+      expect(command).toContain('$_C/plugins/marketplaces/engram/plugin');
+      expect(command).toContain('$_C/plugins/cache/engram/engram');
       expect(command).toContain('[ -f "$_Q/scripts/mcp-server.cjs" ]');
       expect(command).not.toContain('"/scripts/mcp-server.cjs"');
-      expect(command.indexOf('$_C/plugins/cache/thedotmack/claude-mem')).toBeLessThan(
-        command.indexOf('$_C/plugins/marketplaces/thedotmack/plugin')
+      expect(command.indexOf('$_C/plugins/cache/engram/engram')).toBeLessThan(
+        command.indexOf('$_C/plugins/marketplaces/engram/plugin')
       );
     }
   });
@@ -151,12 +151,12 @@ describe('Plugin Distribution - Startup Root Resolution', () => {
       expect(command).toContain('${CLAUDE_CONFIG_DIR:-$HOME/.claude}');
       expect(command).toContain('export PATH=');
       expect(command).toContain('while IFS= read -r _R');
-      expect(command).toContain('$_C/plugins/marketplaces/thedotmack/plugin');
-      expect(command).toContain('$_C/plugins/cache/thedotmack/claude-mem');
+      expect(command).toContain('$_C/plugins/marketplaces/engram/plugin');
+      expect(command).toContain('$_C/plugins/cache/engram/engram');
       expect(command).toContain('[ -f "$_Q/scripts/');
       expect(command).toContain('command -v cygpath');
-      expect(command.indexOf('$_C/plugins/cache/thedotmack/claude-mem')).toBeLessThan(
-        command.indexOf('$_C/plugins/marketplaces/thedotmack/plugin')
+      expect(command.indexOf('$_C/plugins/cache/engram/engram')).toBeLessThan(
+        command.indexOf('$_C/plugins/marketplaces/engram/plugin')
       );
     }
   });
@@ -165,8 +165,8 @@ describe('Plugin Distribution - Startup Root Resolution', () => {
     for (const command of commandHooksFrom('plugin/hooks/hooks.json')) {
       expect(command).toContain('${CLAUDE_CONFIG_DIR:-$HOME/.claude}');
       expect(command).toContain('while IFS= read -r _R');
-      expect(command).toContain('$_C/plugins/marketplaces/thedotmack/plugin');
-      expect(command).toContain('$_C/plugins/cache/thedotmack/claude-mem');
+      expect(command).toContain('$_C/plugins/marketplaces/engram/plugin');
+      expect(command).toContain('$_C/plugins/cache/engram/engram');
       expect(command).toContain('[ -f "$_Q/scripts/');
       expect(command).not.toContain('$HOME/.claude/plugins/');
     }
@@ -275,11 +275,11 @@ const RULE_A_EXPECTATIONS: Record<string, Record<string, string>> = {
 const MCP_EXPECTED = buildShellCommand({
   host: 'mcp', requireFile: 'mcp-server.cjs',
   trailingCommand: ['exec', 'node', '"$_P/scripts/mcp-server.cjs"'],
-  notFoundMessage: 'claude-mem: mcp server not found',
+  notFoundMessage: 'engram: mcp server not found',
   mcpExtraCandidates: ['$PWD/plugin', '$PWD'],
   mcpExtraCacheRoots: [
-    '$HOME/.codex/plugins/cache/claude-mem-local/claude-mem',
-    '$HOME/.codex/plugins/cache/thedotmack/claude-mem',
+    '$HOME/.codex/plugins/cache/engram-local/engram',
+    '$HOME/.codex/plugins/cache/engram/engram',
   ],
 });
 
@@ -299,9 +299,9 @@ describe('Spawn-Contract Templating - Rule A generator parity', () => {
     }
   }
 
-  it('plugin/.mcp.json mcp-search command equals buildShellCommand output', () => {
+  it('plugin/.mcp.json engram command equals buildShellCommand output', () => {
     const parsed = readJson('plugin/.mcp.json');
-    expect(parsed.mcpServers['mcp-search'].args[1]).toBe(MCP_EXPECTED);
+    expect(parsed.mcpServers['engram'].args[1]).toBe(MCP_EXPECTED);
   });
 
   it('never leaks a raw ${CLAUDE_PLUGIN_ROOT} into the resolved trailing command', () => {
@@ -369,7 +369,7 @@ describe('Spawn-Contract Templating - Rule A shell resolution matrix', () => {
 
   it('resolves _P from the cache directory when CLAUDE_PLUGIN_ROOT is unset', () => {
     const home = mkdtempSync(path.join(tmpdir(), 'cm-home-'));
-    const cacheRoot = path.join(home, '.claude', 'plugins', 'cache', 'thedotmack', 'claude-mem', '99.0.0');
+    const cacheRoot = path.join(home, '.claude', 'plugins', 'cache', 'engram', 'engram', '99.0.0');
     mkdirSync(path.join(cacheRoot, 'scripts'), { recursive: true });
     writeFileSync(path.join(cacheRoot, 'scripts', 'version-check.js'), '');
     writeFileSync(path.join(cacheRoot, 'scripts', 'bun-runner.js'), '');
@@ -378,7 +378,11 @@ describe('Spawn-Contract Templating - Rule A shell resolution matrix', () => {
       for (const { command } of claudeCommands()) {
         const { stdout } = shellEval(instrument(command), { HOME: home });
         // ls -dt yields a trailing slash; the hook trims it via _R="${_R%/}".
-        expect(stdout).toContain(`RESOLVED=${cacheRoot}`);
+        // On Windows under bash, HOME gets translated to /tmp/<basename>, so we
+        // check that the resolved path ends with the expected relative suffix.
+        const relSuffix = '.claude/plugins/cache/engram/engram/99.0.0';
+        expect(stdout).toContain('RESOLVED=');
+        expect(stdout.replace(/\\/g, '/')).toContain(relSuffix);
       }
     } finally {
       rmSync(home, { recursive: true, force: true });
