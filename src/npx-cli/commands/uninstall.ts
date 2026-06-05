@@ -70,28 +70,42 @@ function removeMarketplaceDirectory(): boolean {
 }
 
 function removeCacheDirectory(): boolean {
-  const cacheDirectory = join(pluginsDirectory(), 'cache', 'thedotmack', 'claude-mem');
-  if (existsSync(cacheDirectory)) {
-    rmSync(cacheDirectory, { recursive: true, force: true });
-    return true;
+  let removed = false;
+  // Remove the current (engram) cache as well as the legacy (thedotmack) cache.
+  for (const cachePath of [
+    join(pluginsDirectory(), 'cache', 'engram', 'engram'),
+    join(pluginsDirectory(), 'cache', 'thedotmack', 'claude-mem'),
+  ]) {
+    if (existsSync(cachePath)) {
+      rmSync(cachePath, { recursive: true, force: true });
+      removed = true;
+    }
   }
-  return false;
+  return removed;
 }
 
 function removeFromKnownMarketplaces(): void {
   const knownMarketplaces = readJsonSafe<Record<string, any>>(knownMarketplacesPath(), {});
-  if (knownMarketplaces['thedotmack']) {
-    delete knownMarketplaces['thedotmack'];
-    writeJsonFileAtomic(knownMarketplacesPath(), knownMarketplaces);
+  let changed = false;
+  for (const key of ['engram', 'thedotmack']) {
+    if (knownMarketplaces[key]) {
+      delete knownMarketplaces[key];
+      changed = true;
+    }
   }
+  if (changed) writeJsonFileAtomic(knownMarketplacesPath(), knownMarketplaces);
 }
 
 function removeFromInstalledPlugins(): void {
   const installedPlugins = readJsonSafe<Record<string, any>>(installedPluginsPath(), {});
-  if (installedPlugins.plugins?.['claude-mem@thedotmack']) {
-    delete installedPlugins.plugins['claude-mem@thedotmack'];
-    writeJsonFileAtomic(installedPluginsPath(), installedPlugins);
+  let changed = false;
+  for (const key of ['engram@engram', 'claude-mem@thedotmack']) {
+    if (installedPlugins.plugins?.[key]) {
+      delete installedPlugins.plugins[key];
+      changed = true;
+    }
   }
+  if (changed) writeJsonFileAtomic(installedPluginsPath(), installedPlugins);
 }
 
 function stripLegacyClaudeMemAlias(): void {
@@ -127,10 +141,14 @@ function stripLegacyClaudeMemAlias(): void {
 
 function removeFromClaudeSettings(): void {
   const settings = readJsonSafe<Record<string, any>>(claudeSettingsPath(), {});
-  if (settings.enabledPlugins?.['claude-mem@thedotmack'] !== undefined) {
-    delete settings.enabledPlugins['claude-mem@thedotmack'];
-    writeJsonFileAtomic(claudeSettingsPath(), settings);
+  let changed = false;
+  for (const key of ['engram@engram', 'claude-mem@thedotmack']) {
+    if (settings.enabledPlugins?.[key] !== undefined) {
+      delete settings.enabledPlugins[key];
+      changed = true;
+    }
   }
+  if (changed) writeJsonFileAtomic(claudeSettingsPath(), settings);
 }
 
 function removeStrayClaudeMemPaths(): number {
@@ -187,13 +205,17 @@ function removeStrayClaudeMemPaths(): number {
     }
   }
 
-  const pluginDataDir = join(home, '.claude', 'plugins', 'data', 'claude-mem-thedotmack');
-  if (existsSync(pluginDataDir)) {
-    try {
-      rmSync(pluginDataDir, { recursive: true, force: true });
-      removedCount++;
-    } catch (error: unknown) {
-      console.warn(`[uninstall] Could not remove ${pluginDataDir}:`, error instanceof Error ? error.message : String(error));
+  for (const pluginDataDir of [
+    join(home, '.claude', 'plugins', 'data', 'engram-engram'),
+    join(home, '.claude', 'plugins', 'data', 'claude-mem-thedotmack'),
+  ]) {
+    if (existsSync(pluginDataDir)) {
+      try {
+        rmSync(pluginDataDir, { recursive: true, force: true });
+        removedCount++;
+      } catch (error: unknown) {
+        console.warn(`[uninstall] Could not remove ${pluginDataDir}:`, error instanceof Error ? error.message : String(error));
+      }
     }
   }
 
