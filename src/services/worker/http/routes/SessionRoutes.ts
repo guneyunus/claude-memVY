@@ -15,7 +15,8 @@ import { BaseRouteHandler } from '../BaseRouteHandler.js';
 import { SessionEventBroadcaster } from '../../events/SessionEventBroadcaster.js';
 import { PrivacyCheckValidator } from '../../validation/PrivacyCheckValidator.js';
 import { SettingsDefaultsManager } from '../../../../shared/SettingsDefaultsManager.js';
-import { USER_SETTINGS_PATH } from '../../../../shared/paths.js';
+import { USER_SETTINGS_PATH, DATA_DIR } from '../../../../shared/paths.js';
+import { engramSyncOutAfterStop } from '../../../../engram/worker-sync.js';
 import { getProjectContext } from '../../../../utils/project-name.js';
 import { normalizePlatformSource } from '../../../../shared/platform-source.js';
 import { handleGeneratorExit } from '../../session/GeneratorExitHandler.js';
@@ -279,6 +280,11 @@ export class SessionRoutes extends BaseRouteHandler {
     this.eventBroadcaster.broadcastSummarizeQueued();
 
     res.json({ status: 'queued' });
+
+    // Engram: best-effort sync-out (export -> commit -> push) of this project's
+    // memory after Stop. Eventual — the just-queued summary may propagate next Stop.
+    const engramProject = this.dbManager.getSessionStore().getAllProjects()[0];
+    engramSyncOutAfterStop(this.dbManager.getConnection(), DATA_DIR, engramProject, (m) => logger.info('SYSTEM', `engram: ${m}`));
   });
 
   private handleStatusByClaudeId = this.wrapHandler(async (req: Request, res: Response): Promise<void> => {
