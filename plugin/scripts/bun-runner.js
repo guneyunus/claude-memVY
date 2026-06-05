@@ -91,6 +91,16 @@ args[0] = fixBrokenScriptPath(args[0]);
 // SOURCE OF TRUTH for the values: src/engram/project-root.ts (mirrored in
 // ./engram-resolve.cjs). Fail-open: any error leaves env untouched so the
 // worker falls back to the global ~/.engram behavior — a hook is never broken.
+//
+// process.cwd() is the hook-invocation cwd; Claude Code sets it to the project
+// root before invoking hooks (stdin's authoritative `cwd` is read later by
+// collectStdin(), too late to influence the spawned child's frozen DATA_DIR).
+// Cost: resolveRuntimeEnv runs `git rev-parse` synchronously (~tens of ms) on
+// every hook invocation; no cross-process cache yet (Plan B4 may cache the
+// resolved root under <dataDir> and short-circuit).
+// LIMITATION: the port is a deterministic candidate with NO collision handling —
+// two projects whose roots hash to the same port would share a worker.
+// Bind-or-increment + /api/whoami verification is deferred to Plan B4.
 try {
   const mod = await import('./engram-resolve.cjs');
   const resolveRuntimeEnv = mod.default?.resolveRuntimeEnv ?? mod.resolveRuntimeEnv;

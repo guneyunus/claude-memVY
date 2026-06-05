@@ -26,6 +26,7 @@ describe('bun-runner per-project injection (isolated)', () => {
         input: '{}',
         encoding: 'utf8',
         windowsHide: true,
+        timeout: 15000,
       });
 
       if (res.status !== 0 || !res.stdout.trim()) {
@@ -44,9 +45,10 @@ describe('bun-runner per-project injection (isolated)', () => {
     }
   });
 
-  it('does NOT override an explicit CLAUDE_MEM_DATA_DIR already in the env', () => {
+  it('does NOT override explicit CLAUDE_MEM_DATA_DIR / CLAUDE_MEM_WORKER_PORT already in the env', () => {
     const repo = realpathSync(mkdtempSync(join(tmpdir(), 'engram-inject2-')));
-    const override = resolve(repo, 'custom-data');
+    const overrideDir = resolve(repo, 'custom-data');
+    const overridePort = '39123';
     try {
       execFileSync('git', ['init', '-q'], { cwd: repo, windowsHide: true });
       const res = spawnSync('node', [BUN_RUNNER, STUB, 'hook', 'claude-code', 'context'], {
@@ -54,13 +56,15 @@ describe('bun-runner per-project injection (isolated)', () => {
         input: '{}',
         encoding: 'utf8',
         windowsHide: true,
-        env: { ...process.env, CLAUDE_MEM_DATA_DIR: override },
+        timeout: 15000,
+        env: { ...process.env, CLAUDE_MEM_DATA_DIR: overrideDir, CLAUDE_MEM_WORKER_PORT: overridePort },
       });
       if (res.status !== 0 || !res.stdout.trim()) {
         throw new Error(`stub did not run cleanly: status=${res.status} stderr=${res.stderr}`);
       }
       const printed = JSON.parse(res.stdout.trim());
-      expect(printed.dataDir).toBe(override); // explicit env wins (fail-open guard)
+      expect(printed.dataDir).toBe(overrideDir); // explicit env wins (fail-open guard)
+      expect(printed.port).toBe(overridePort);   // explicit port preserved too
     } finally {
       rmSync(repo, { recursive: true, force: true });
     }
