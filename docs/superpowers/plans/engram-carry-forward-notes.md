@@ -43,3 +43,19 @@ Running list of constraints + review insights that later plans MUST honor. Captu
 - No `SessionEnd` hook exists; end-of-turn is the **`Stop`** hook. Commit cadence: export every Stop, debounced commit/push.
 - Smoke test = two clones against a temp bare remote; assert observations + decisions + `state.md` propagate and appear in `/api/context/inject`.
 - All git ops: short timeouts, non-fatal, never block the session (match existing hook IO discipline).
+
+## Go-live hook wiring (Plan D → production)
+
+syncOut/syncIn are proven by the smoke test but NOT yet called by the worker
+(activating them is the go-live step, alongside B2+B3+B4 + build-and-sync):
+- **SessionStart** (`src/cli/handlers/context.ts`, or the worker on boot): before
+  context injection, `syncIn(db, resolveProjectRuntime(cwd).root, { pull: true })`
+  then let the existing ChromaSync backfill reindex.
+- **Stop** (`src/cli/handlers/summarize.ts`, after the summarize job is queued):
+  `syncOut(db, project, resolveProjectRuntime(cwd).root, { push: <debounced> })`.
+  Debounce push (carry-forward decision): export every Stop, push on a quiet
+  threshold to avoid commit-per-turn spam. The worker holds the DB handle; pass it
+  (it owns `SessionStore`/`DatabaseManager`). Wrap in the worker's try/catch so a
+  sync failure never blocks the turn (git-sync is already non-throwing).
+- Both calls run inside the worker process where `DATA_DIR`/the DB handle and the
+  project root are available; the resilient git wrapper handles offline/no-remote.
