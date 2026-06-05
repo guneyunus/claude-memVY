@@ -1,6 +1,6 @@
 {
   "name": "engram-plugin",
-  "version": "13.4.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Runtime dependencies for engram bundled hooks",
   "type": "module",
