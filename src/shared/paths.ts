@@ -5,6 +5,7 @@ import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { SettingsDefaultsManager } from './SettingsDefaultsManager.js';
 import { logger } from '../utils/logger.js';
+import { globalConfigDir } from '../engram/global-config.js';
 
 function getDirname(): string {
   if (typeof __dirname !== 'undefined') {
@@ -38,6 +39,9 @@ export function resolveDataDir(): string {
 }
 
 export const DATA_DIR = resolveDataDir();
+// Engram config split: user secrets/config (settings.json, .env) live here,
+// GLOBAL across all projects, even when DATA_DIR is per-project (Plan B2/B3).
+export const GLOBAL_CONFIG_DIR = globalConfigDir();
 export const CLAUDE_CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude');
 
 export const MARKETPLACE_ROOT = join(CLAUDE_CONFIG_DIR, 'plugins', 'marketplaces', 'thedotmack');
@@ -47,7 +51,7 @@ export const LOGS_DIR = join(DATA_DIR, 'logs');
 export const TRASH_DIR = join(DATA_DIR, 'trash');
 export const BACKUPS_DIR = join(DATA_DIR, 'backups');
 export const MODES_DIR = join(DATA_DIR, 'modes');
-export const USER_SETTINGS_PATH = join(DATA_DIR, 'settings.json');
+export const USER_SETTINGS_PATH = join(GLOBAL_CONFIG_DIR, 'settings.json');
 export const DB_PATH = join(DATA_DIR, 'engram.db');
 export const VECTOR_DB_DIR = join(DATA_DIR, 'vector-db');
 
@@ -132,7 +136,7 @@ export const paths = {
   serverBetaPid: () => join(DATA_DIR, '.server-beta.pid'),
   serverBetaPort: () => join(DATA_DIR, '.server-beta.port'),
   serverBetaRuntime: () => join(DATA_DIR, '.server-beta.runtime.json'),
-  settings: () => join(DATA_DIR, 'settings.json'),
+  settings: () => join(GLOBAL_CONFIG_DIR, 'settings.json'),
   database: () => join(DATA_DIR, 'engram.db'),
   chroma: () => join(DATA_DIR, 'chroma'),
   combinedCerts: () => join(DATA_DIR, 'combined_certs.pem'),
@@ -140,7 +144,7 @@ export const paths = {
   transcriptsState: () => join(DATA_DIR, 'transcript-watch-state.json'),
   corpora: () => join(DATA_DIR, 'corpora'),
   supervisorRegistry: () => join(DATA_DIR, 'supervisor.json'),
-  envFile: () => join(DATA_DIR, '.env'),
+  envFile: () => join(GLOBAL_CONFIG_DIR, '.env'),
   logsDir: () => LOGS_DIR,
   archives: () => ARCHIVES_DIR,
   trash: () => TRASH_DIR,
