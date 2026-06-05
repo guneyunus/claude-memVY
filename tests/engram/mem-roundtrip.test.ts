@@ -61,8 +61,11 @@ describe('mem-sql roundtrip', () => {
       expect(readProjectRows(b.db, PROJECT).observations.length).toBe(1);
     } finally {
       a.db.close(); b.db.close();
-      rmSync(dirA, { recursive: true, force: true });
-      rmSync(dirB, { recursive: true, force: true });
+      // Windows + Bun: force GC so the native sqlite handle is released before
+      // we delete the temp dir; retry rmSync to absorb any lag.
+      (globalThis as any).Bun?.gc?.(true);
+      rmSync(dirA, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
+      rmSync(dirB, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
     }
   });
 });
@@ -101,8 +104,9 @@ describe('exporter/importer file roundtrip', () => {
       } finally { rmSync(repoB, { recursive: true, force: true }); }
     } finally {
       a.db.close(); b.db.close();
-      rmSync(repoA, { recursive: true, force: true });
-      rmSync(dirB, { recursive: true, force: true });
+      (globalThis as any).Bun?.gc?.(true);
+      rmSync(repoA, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
+      rmSync(dirB, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
     }
   });
 });
