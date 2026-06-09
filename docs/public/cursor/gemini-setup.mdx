@@ -1,11 +1,11 @@
 ---
 title: "Cursor + Gemini Setup"
-description: "Use Claude-Mem in Cursor with Google's free Gemini API"
+description: "Use Engram in Cursor with Google's free Gemini API"
 ---
 
 # Cursor + Gemini Setup
 
-This guide walks you through setting up Claude-Mem in Cursor using Google's Gemini API. Gemini offers a generous free tier that handles typical individual usage.
+This guide walks you through setting up Engram in Cursor using Google's Gemini API. Gemini offers a generous free tier that handles typical individual usage.
 
 <Info>
 **Free Tier:** 1,500 requests per day with `gemini-2.5-flash-lite`. No credit card required.
@@ -24,12 +24,12 @@ This guide walks you through setting up Claude-Mem in Cursor using Google's Gemi
 **Higher rate limits:** Enable billing on your Google Cloud project to unlock 4,000 RPM (vs 10 RPM without billing). You won't be charged unless you exceed the free quota.
 </Tip>
 
-## Step 2: Clone and Build Claude-Mem
+## Step 2: Clone and Build Engram
 
 ```bash
 # Clone the repository
 git clone https://github.com/thedotmack/claude-mem.git
-cd claude-mem
+cd Engram
 
 # Install dependencies
 bun install
@@ -61,10 +61,10 @@ Create the settings file manually:
 
 ```bash
 # Create settings directory
-mkdir -p ~/.claude-mem
+mkdir -p ~/.engram
 
 # Create settings file with Gemini configuration
-cat > ~/.claude-mem/settings.json << 'EOF'
+cat > ~/.engram/settings.json << 'EOF'
 {
   "CLAUDE_MEM_PROVIDER": "gemini",
   "CLAUDE_MEM_GEMINI_API_KEY": "YOUR_GEMINI_API_KEY"
@@ -140,7 +140,7 @@ You'll still use the free quota but with much higher rate limits.
 Ensure your settings file exists and has the correct format:
 
 ```bash
-cat ~/.claude-mem/settings.json
+cat ~/.engram/settings.json
 ```
 
 Should output something like:

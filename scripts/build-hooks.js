@@ -108,11 +108,11 @@ function shellTemplateManifest(buildShellCommand) {
       command: buildShellCommand({
         host: 'mcp', requireFile: 'mcp-server.cjs',
         trailingCommand: ['exec', 'node', '"$_P/scripts/mcp-server.cjs"'],
-        notFoundMessage: 'claude-mem: mcp server not found',
+        notFoundMessage: 'engram: mcp server not found',
         mcpExtraCandidates: ['$PWD/plugin', '$PWD'],
         mcpExtraCacheRoots: [
-          '$HOME/.codex/plugins/cache/claude-mem-local/claude-mem',
-          '$HOME/.codex/plugins/cache/thedotmack/claude-mem',
+          '$HOME/.codex/plugins/cache/engram-local/engram',
+          '$HOME/.codex/plugins/cache/engram/engram',
         ],
       }),
     },
@@ -147,10 +147,10 @@ async function verifyShellTemplateCanonical() {
   for (const [filePath, spec] of Object.entries(manifest)) {
     const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
     if (spec.kind === 'mcp') {
-      const actual = parsed.mcpServers?.['mcp-search']?.args?.[1] ?? '';
+      const actual = parsed.mcpServers?.['engram']?.args?.[1] ?? '';
       if (actual !== spec.command) {
         throw new Error(
-          `Hand-edited shell string detected in ${filePath} (mcp-search). It no longer matches src/build/hook-shell-template.ts. ` +
+          `Hand-edited shell string detected in ${filePath} (engram). It no longer matches src/build/hook-shell-template.ts. ` +
           `Update the generator (and this manifest) instead of hand-editing the launcher.`
         );
       }
@@ -200,10 +200,10 @@ async function buildHooks() {
 
     console.log('\n📦 Generating plugin package.json...');
     const pluginPackageJson = {
-      name: 'claude-mem-plugin',
+      name: 'engram-plugin',
       version: version,
       private: true,
-      description: 'Runtime dependencies for claude-mem bundled hooks',
+      description: 'Runtime dependencies for engram bundled hooks',
       type: 'module',
       dependencies: {
         'zod': '^4.3.6',
@@ -582,17 +582,17 @@ async function buildHooks() {
       }
     }
     const codexMarketplace = JSON.parse(fs.readFileSync('.agents/plugins/marketplace.json', 'utf-8'));
-    const claudeMemMarketplaceEntry = (codexMarketplace.plugins ?? []).find((plugin) => plugin.name === 'claude-mem');
+    const claudeMemMarketplaceEntry = (codexMarketplace.plugins ?? []).find((plugin) => plugin.name === 'engram');
     if (claudeMemMarketplaceEntry?.source?.path !== './plugin') {
-      throw new Error('.agents/plugins/marketplace.json must point claude-mem source.path at ./plugin so Codex loads the bundled plugin root');
+      throw new Error('.agents/plugins/marketplace.json must point engram source.path at ./plugin so Codex loads the bundled plugin root');
     }
     const bundledMcp = JSON.parse(fs.readFileSync('plugin/.mcp.json', 'utf-8'));
-    const mcpSearchCommand = bundledMcp.mcpServers?.['mcp-search']?.args?.join(' ') ?? '';
-    if (!mcpSearchCommand.includes('.codex/plugins/cache/claude-mem-local/claude-mem')) {
-      throw new Error('plugin/.mcp.json mcp-search launcher must include Codex cache fallback for hosts that do not inject PLUGIN_ROOT');
+    const mcpSearchCommand = bundledMcp.mcpServers?.['engram']?.args?.join(' ') ?? '';
+    if (!mcpSearchCommand.includes('.codex/plugins/cache/engram-local/engram')) {
+      throw new Error('plugin/.mcp.json engram launcher must include Codex cache fallback for hosts that do not inject PLUGIN_ROOT');
     }
-    if (!mcpSearchCommand.includes('plugins/cache/thedotmack/claude-mem')) {
-      throw new Error('plugin/.mcp.json mcp-search launcher must include Claude cache fallback for hosts that do not inject PLUGIN_ROOT');
+    if (!mcpSearchCommand.includes('plugins/cache/engram/engram')) {
+      throw new Error('plugin/.mcp.json engram launcher must include Claude cache fallback for hosts that do not inject PLUGIN_ROOT');
     }
     console.log('✓ All required distribution files present');
 

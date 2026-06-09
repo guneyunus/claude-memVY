@@ -453,7 +453,7 @@ export class OpenRouterProvider {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': siteUrl || 'https://github.com/thedotmack/claude-mem',
+            'HTTP-Referer': siteUrl || 'https://github.com/guneyunus/claude-memVY',
             'X-Title': appName || 'claude-mem',
             'Content-Type': 'application/json',
             ...(priorRequestId ? { 'x-claude-mem-prior-request-id': priorRequestId } : {}),

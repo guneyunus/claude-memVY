@@ -41,7 +41,7 @@ export function runOneTimeV12_4_3Cleanup(
     return;
   }
 
-  const dbPath = path.join(effectiveDataDir, 'claude-mem.db');
+  const dbPath = path.join(effectiveDataDir, 'engram.db');
   if (!existsSync(dbPath)) {
     if (dryRun) {
       logger.info('SYSTEM', 'v12.4.3 cleanup --dry-run: no DB present, nothing to scan', { dbPath });

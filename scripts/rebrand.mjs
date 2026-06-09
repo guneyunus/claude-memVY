@@ -1,0 +1,234 @@
+#!/usr/bin/env node
+// Engram rebrand engine — re-runnable after every upstream merge.
+// Applies a FIXED list of exact string edits to source-of-truth files only.
+// Idempotent: if a `from` string is already replaced by its `to`, the edit is
+// skipped. If neither `from` nor `to` is present, the edit is reported MISSING
+// and the script exits non-zero (so upstream drift fails loudly).
+//
+// Deliberately retained (NOT rebranded): internal CLAUDE_MEM_* env names, the
+// `thedotmack` marketplace slug, and plugin/.mcp.json install-path resolution.
+
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+/** @type {{file: string, edits: {from: string, to: string, all?: boolean}[]}[]} */
+const PLAN = [
+  {
+    file: 'package.json',
+    edits: [
+      { from: '"name": "claude-mem",', to: '"name": "@guneyunus/engram",' },
+      { from: '"claude-mem": "./dist/npx-cli/index.js"', to: '"engram": "./dist/npx-cli/index.js"' },
+      {
+        from: '"description": "Memory compression system for Claude Code - persist context across sessions",',
+        to: '"description": "Engram: project-local, git-native memory for Claude Code",',
+      },
+    ],
+  },
+  {
+    file: 'plugin/package.json',
+    edits: [
+      { from: '"name": "claude-mem-plugin",', to: '"name": "engram-plugin",' },
+      {
+        from: '"Runtime dependencies for claude-mem bundled hooks"',
+        to: '"Runtime dependencies for engram bundled hooks"',
+      },
+    ],
+  },
+  {
+    file: '.claude-plugin/marketplace.json',
+    edits: [
+      // plugins[0].name only — the marketplace "name": "thedotmack" is load-bearing and left alone.
+      { from: '"name": "claude-mem",', to: '"name": "engram",' },
+      {
+        from: '"Persistent memory system for Claude Code - context compression across sessions"',
+        to: '"Engram: project-local, git-native memory for Claude Code"',
+      },
+    ],
+  },
+  {
+    file: 'plugin/.mcp.json',
+    edits: [
+      { from: '"mcp-search": {', to: '"engram": {' },
+      { from: 'claude-mem: mcp server not found', to: 'engram: mcp server not found' },
+    ],
+  },
+  {
+    file: 'scripts/build-hooks.js',
+    edits: [
+      { from: "['mcp-search']", to: "['engram']", all: true },
+      { from: '(mcp-search). It no longer matches', to: '(engram). It no longer matches' },
+      { from: '.mcp.json mcp-search launcher must include Codex', to: '.mcp.json engram launcher must include Codex' },
+      { from: '.mcp.json mcp-search launcher must include Claude', to: '.mcp.json engram launcher must include Claude' },
+      // The canonical shell-template generator must emit the same notFoundMessage as plugin/.mcp.json.
+      { from: "notFoundMessage: 'claude-mem: mcp server not found',", to: "notFoundMessage: 'engram: mcp server not found'," },
+      // build-hooks.js hard-codes plugin/package.json content; keep in sync with the renamed package.
+      { from: "      name: 'claude-mem-plugin',", to: "      name: 'engram-plugin'," },
+      { from: "      description: 'Runtime dependencies for claude-mem bundled hooks',", to: "      description: 'Runtime dependencies for engram bundled hooks'," },
+    ],
+  },
+  {
+    file: 'src/servers/mcp-server.ts',
+    edits: [
+      { from: "name: 'claude-mem',", to: "name: 'engram'," },
+    ],
+  },
+  {
+    file: 'src/shared/paths.ts',
+    edits: [
+      { from: "join(homedir(), '.claude-mem')", to: "join(homedir(), '.engram')" },
+      { from: "'claude-mem.db'", to: "'engram.db'", all: true },
+    ],
+  },
+  {
+    file: 'src/shared/SettingsDefaultsManager.ts',
+    edits: [
+      { from: "CLAUDE_MEM_OPENROUTER_APP_NAME: 'claude-mem',", to: "CLAUDE_MEM_OPENROUTER_APP_NAME: 'engram'," },
+      { from: "join(homedir(), '.claude-mem'", to: "join(homedir(), '.engram'", all: true },
+    ],
+  },
+  {
+    file: 'src/cli/claude-md-commands.ts',
+    edits: [
+      { from: "'.claude-mem', '.open-next', '.turbo'", to: "'.engram', '.mem', '.open-next', '.turbo'", all: true },
+    ],
+  },
+  // These infra files build the db path themselves (path.join(dataDir, 'claude-mem.db'))
+  // instead of importing paths.database()/DB_PATH, so they hardcode the filename. Without
+  // these edits they look for 'claude-mem.db' even after the rebrand — dormant for Plan A
+  // (default ~/.engram), but a runtime miss once Plan B points DATA_DIR at .mem/.runtime/.
+  {
+    file: 'src/services/infrastructure/WorktreeAdoption.ts',
+    edits: [
+      { from: "'claude-mem.db'", to: "'engram.db'", all: true },
+    ],
+  },
+  {
+    file: 'src/services/infrastructure/ProcessManager.ts',
+    edits: [
+      { from: "'claude-mem.db'", to: "'engram.db'" },
+    ],
+  },
+  {
+    file: 'src/services/infrastructure/CleanupV12_4_3.ts',
+    edits: [
+      { from: "'claude-mem.db'", to: "'engram.db'" },
+    ],
+  },
+  {
+    file: 'tests/servers/mcp-server-name-safety.test.ts',
+    edits: [
+      { from: "'mcp__plugin_claude-mem_mcp-search__'", to: "'mcp__plugin_engram_engram__'" },
+    ],
+  },
+
+  // ---- Plan E (full distribution rebrand): marketplace slug + plugin identifier + repo ----
+  {
+    file: '.claude-plugin/marketplace.json',
+    edits: [
+      { from: '"name": "thedotmack",', to: '"name": "engram",' },
+      { from: '"description": "Plugins by Alex Newman (thedotmack)"', to: '"description": "Engram plugins"' },
+      { from: '"homepage": "https://github.com/thedotmack/claude-mem"', to: '"homepage": "https://github.com/guneyunus/claude-memVY"' },
+    ],
+  },
+  {
+    file: '.agents/plugins/marketplace.json',
+    edits: [
+      { from: '"name": "claude-mem-local"', to: '"name": "engram-local"' },
+      { from: '"name": "claude-mem"', to: '"name": "engram"' },
+      { from: '"displayName": "claude-mem (local)"', to: '"displayName": "engram (local)"' },
+    ],
+  },
+  {
+    file: 'src/shared/paths.ts',
+    edits: [ { from: "'plugins', 'marketplaces', 'thedotmack'", to: "'plugins', 'marketplaces', 'engram'" } ],
+  },
+  {
+    file: 'src/npx-cli/utils/paths.ts',
+    edits: [
+      { from: "'marketplaces', 'thedotmack'", to: "'marketplaces', 'engram'" },
+      { from: "'cache', 'thedotmack', 'claude-mem'", to: "'cache', 'engram', 'engram'" },
+    ],
+  },
+  {
+    file: 'src/shared/plugin-state.ts',
+    edits: [ { from: "'claude-mem@thedotmack'", to: "'engram@engram'" } ],
+  },
+  {
+    file: 'plugin/scripts/bun-runner.js',
+    edits: [ { from: "enabledPlugins?.['claude-mem@thedotmack']", to: "enabledPlugins?.['engram@engram']" } ],
+  },
+  {
+    file: 'src/npx-cli/commands/install.ts',
+    edits: [
+      { from: "knownMarketplaces['thedotmack']", to: "knownMarketplaces['engram']", all: true },
+      { from: "repo: 'thedotmack/claude-mem'", to: "repo: 'guneyunus/claude-memVY'" },
+      { from: "'claude-mem@thedotmack'", to: "'engram@engram'", all: true },
+    ],
+  },
+  {
+    file: 'src/services/integrations/CodexCliInstaller.ts',
+    edits: [
+      { from: "const MARKETPLACE_NAME = 'claude-mem-local';", to: "const MARKETPLACE_NAME = 'engram-local';" },
+      { from: 'const CODEX_PLUGIN_ID = `claude-mem@${MARKETPLACE_NAME}`;', to: 'const CODEX_PLUGIN_ID = `engram@${MARKETPLACE_NAME}`;' },
+      // NOTE: LEGACY_CODEX_PLUGIN_IDS intentionally KEEPS the old claude-mem ids
+      // (they are disabled to migrate old installs) — do NOT rebrand them.
+    ],
+  },
+  {
+    file: 'scripts/sync-marketplace.cjs',
+    edits: [
+      { from: "path.join(os.homedir(), '.claude', 'plugins', 'marketplaces', 'thedotmack')", to: "path.join(os.homedir(), '.claude', 'plugins', 'marketplaces', 'engram')" },
+      { from: "path.join(os.homedir(), '.claude', 'plugins', 'cache', 'thedotmack', 'claude-mem')", to: "path.join(os.homedir(), '.claude', 'plugins', 'cache', 'engram', 'engram')" },
+      { from: 'run \\`claude plugin update thedotmack/claude-mem\\`', to: 'run \\`claude plugin update guneyunus/claude-memVY\\`' },
+      { from: "./ ~/.claude/plugins/marketplaces/thedotmack/`", to: "./ ~/.claude/plugins/marketplaces/engram/`", all: true },
+      { from: "'cd ~/.claude/plugins/marketplaces/thedotmack/ && bun install'", to: "'cd ~/.claude/plugins/marketplaces/engram/ && bun install'" },
+    ],
+  },
+  {
+    file: 'package.json',
+    edits: [
+      { from: 'marketplaces/thedotmack', to: 'marketplaces/engram' },
+      { from: '"url": "https://github.com/thedotmack/claude-mem.git"', to: '"url": "https://github.com/guneyunus/claude-memVY.git"' },
+      { from: '"homepage": "https://github.com/thedotmack/claude-mem#readme"', to: '"homepage": "https://github.com/guneyunus/claude-memVY#readme"' },
+      { from: '"url": "https://github.com/thedotmack/claude-mem/issues"', to: '"url": "https://github.com/guneyunus/claude-memVY/issues"' },
+      { from: '"version": "13.4.0"', to: '"version": "1.0.0"' },
+    ],
+  },
+];
+
+let applied = 0;
+let skipped = 0;
+const missing = [];
+
+for (const { file, edits } of PLAN) {
+  const abs = path.join(rootDir, file);
+  if (!fs.existsSync(abs)) {
+    missing.push(`${file} (file not found)`);
+    continue;
+  }
+  let text = fs.readFileSync(abs, 'utf8');
+  let changed = false;
+  for (const { from, to, all } of edits) {
+    if (text.includes(from)) {
+      text = all ? text.split(from).join(to) : text.replace(from, to);
+      changed = true;
+      applied++;
+    } else if (text.includes(to)) {
+      skipped++; // already rebranded — idempotent no-op
+    } else {
+      missing.push(`${file}: "${from}"`);
+    }
+  }
+  if (changed) fs.writeFileSync(abs, text);
+}
+
+console.log(`rebrand: ${applied} applied, ${skipped} already-applied, ${missing.length} missing`);
+if (missing.length) {
+  console.error('rebrand: MISSING edits (upstream drift — update scripts/rebrand.mjs):');
+  for (const m of missing) console.error('  - ' + m);
+  process.exit(1);
+}
+console.log('✓ rebrand complete');

@@ -1,11 +1,11 @@
 {
-  "name": "claude-mem",
-  "version": "13.4.0",
-  "description": "Memory compression system for Claude Code - persist context across sessions",
+  "name": "@guneyunus/engram",
+  "version": "1.0.0",
+  "description": "Engram: project-local, git-native memory for Claude Code",
   "author": {
     "name": "Alex Newman"
   },
-  "repository": "https://github.com/thedotmack/claude-mem",
+  "repository": "https://github.com/guneyunus/claude-memVY",
   "license": "Apache-2.0",
   "keywords": [
     "claude",
@@ -20,5 +20,5 @@
     "typescript",
     "nodejs"
   ],
-  "homepage": "https://github.com/thedotmack/claude-mem#readme"
+  "homepage": "https://github.com/guneyunus/claude-memVY#readme"
 }

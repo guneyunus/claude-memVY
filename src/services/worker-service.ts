@@ -7,6 +7,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { getWorkerPort, getWorkerHost } from '../shared/worker-utils.js';
 import { DATA_DIR, DB_PATH, ensureDir } from '../shared/paths.js';
+import { engramSyncInOnBoot } from '../engram/worker-sync.js';
 import { HOOK_TIMEOUTS } from '../shared/hook-constants.js';
 import { SettingsDefaultsManager } from '../shared/SettingsDefaultsManager.js';
 import { getAuthMethodDescription } from '../shared/EnvManager.js';
@@ -350,6 +351,11 @@ export class WorkerService implements WorkerRef {
 
       logger.info('WORKER', 'Initializing database manager...');
       await this.dbManager.initialize();
+
+      // Engram: on worker boot, pull + import the project's .mem into the DB.
+      // The per-project worker boots when SessionStart fires, so this is once
+      // per session-start. Best-effort (never aborts init).
+      engramSyncInOnBoot(this.dbManager.getConnection(), DATA_DIR, (m) => logger.info('SYSTEM', `engram: ${m}`));
 
       runOneTimeV12_4_3Cleanup();
 

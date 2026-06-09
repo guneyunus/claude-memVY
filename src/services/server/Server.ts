@@ -14,6 +14,7 @@ import { flushResponseThen } from './flushResponseThen.js';
 import { getUptimeSeconds } from '../../shared/uptime.js';
 import { globalRateLimitStore } from '../worker/RateLimitStore.js';
 import type { ObservationQueueHealth } from '../../server/queue/queue-health-types.js';
+import { whoamiInfo } from './whoami.js';
 
 const INSTRUCTIONS_BASE_DIR: string = path.resolve(__dirname, '../skills/mem-search');
 const INSTRUCTIONS_OPERATIONS_DIR: string = path.join(INSTRUCTIONS_BASE_DIR, 'operations');
@@ -246,6 +247,10 @@ export class Server {
 
     this.app.get('/api/version', (_req: Request, res: Response) => {
       res.status(200).json({ version: BUILT_IN_VERSION });
+    });
+
+    this.app.get('/api/whoami', requireLocalhost, (_req: Request, res: Response) => {
+      res.status(200).json(whoamiInfo());
     });
 
     this.app.get('/api/instructions', (req: Request, res: Response) => {

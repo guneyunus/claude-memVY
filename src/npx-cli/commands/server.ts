@@ -21,7 +21,7 @@ const UNSUPPORTED_SERVER_COMMANDS = new Set([
 ]);
 
 function printServerUsage(): void {
-  console.error(`Usage: ${pc.bold('npx claude-mem server <command>')}`);
+  console.error(`Usage: ${pc.bold('npx @guneyunus/engram server <command>')}`);
   console.error('Commands: start, stop, restart, status, logs, doctor, migrate, export, import, api-key create|list|revoke, keys rotate, worker start, jobs status|failed|retry|cancel');
 }
 
@@ -92,7 +92,7 @@ export async function runServerCommand(argv: string[] = []): Promise<void> {
       return;
     }
     console.error(pc.red(`Unknown server api-key subcommand: ${apiKeyCommand ?? '(none)'}`));
-    console.error('Usage: npx claude-mem server api-key create|list|revoke');
+    console.error('Usage: npx @guneyunus/engram server api-key create|list|revoke');
     process.exit(1);
   }
 
@@ -103,7 +103,7 @@ export async function runServerCommand(argv: string[] = []): Promise<void> {
       return;
     }
     console.error(pc.red(`Unknown server worker subcommand: ${workerCommand ?? '(none)'}`));
-    console.error('Usage: npx claude-mem server worker start');
+    console.error('Usage: npx @guneyunus/engram server worker start');
     process.exit(1);
   }
 
@@ -114,7 +114,7 @@ export async function runServerCommand(argv: string[] = []): Promise<void> {
       return;
     }
     console.error(pc.red(`Unknown server keys subcommand: ${keysCommand ?? '(none)'}`));
-    console.error('Usage: npx claude-mem server keys rotate');
+    console.error('Usage: npx @guneyunus/engram server keys rotate');
     process.exit(1);
   }
 
@@ -140,11 +140,10 @@ async function runServerBetaKeysRotateCommand(): Promise<void> {
   const { rotateServerBetaApiKey, persistServerBetaSettings } = await import(
     '../../services/hooks/server-beta-bootstrap.js'
   );
-  const { SettingsDefaultsManager } = await import('../../shared/SettingsDefaultsManager.js');
-  const { join } = await import('path');
   const { existsSync, readFileSync } = await import('fs');
+  const { USER_SETTINGS_PATH } = await import('../../shared/paths.js');
 
-  const settingsPath = join(SettingsDefaultsManager.get('CLAUDE_MEM_DATA_DIR'), 'settings.json');
+  const settingsPath = USER_SETTINGS_PATH; // global config (Plan B3) — server-beta API key is a secret
   let previousApiKeyId: string | null = null;
   if (existsSync(settingsPath)) {
     try {
@@ -196,7 +195,7 @@ export function runWorkerAliasCommand(argv: string[] = []): void {
 
   if (!subCommand || !runWorkerLifecycleCommand(subCommand)) {
     console.error(pc.red(`Unknown worker command: ${subCommand ?? '(none)'}`));
-    console.error('Usage: npx claude-mem worker start|stop|restart|status');
+    console.error('Usage: npx @guneyunus/engram worker start|stop|restart|status');
     process.exit(1);
   }
 }

@@ -54,7 +54,7 @@ export interface ServerRuntimeInstallInputs {
 
 export interface ServerRuntimeInstallPlan {
   runtime: 'server-beta';
-  /** Settings to persist to ~/.claude-mem/settings.json so hooks select the server runtime. */
+  /** Settings to persist to ~/.engram/settings.json so hooks select the server runtime. */
   settings: { CLAUDE_MEM_RUNTIME: 'server-beta'; CLAUDE_MEM_SERVER_BETA_URL: string };
   /** Bring up the bundled pg + redis/valkey compose stack. */
   bringUpDockerStack: boolean;
@@ -96,7 +96,7 @@ export function planServerRuntimeInstall(inputs: ServerRuntimeInstallInputs): Se
   if (!inputs.hasDatabaseUrl) {
     notes.push(
       'CLAUDE_MEM_SERVER_DATABASE_URL is not set; skipping API key generation. '
-        + 'Run `npx claude-mem server keys rotate` after Postgres is reachable to provision a hook key.',
+        + 'Run `npx @guneyunus/engram server keys rotate` after Postgres is reachable to provision a hook key.',
     );
   }
 

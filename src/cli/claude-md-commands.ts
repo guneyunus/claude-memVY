@@ -95,7 +95,7 @@ function walkDirectoriesWithIgnore(dir: string, folders: Set<string>, depth: num
   const ignorePatterns = [
     'node_modules', '.git', '.next', 'dist', 'build', '.cache',
     '__pycache__', '.venv', 'venv', '.idea', '.vscode', 'coverage',
-    '.claude-mem', '.open-next', '.turbo'
+    '.engram', '.mem', '.open-next', '.turbo'
   ];
 
   try {
@@ -473,7 +473,7 @@ export async function cleanClaudeMd(dryRun: boolean): Promise<number> {
     const ignorePatterns = [
       'node_modules', '.git', '.next', 'dist', 'build', '.cache',
       '__pycache__', '.venv', 'venv', '.idea', '.vscode', 'coverage',
-      '.claude-mem', '.open-next', '.turbo'
+      '.engram', '.mem', '.open-next', '.turbo'
     ];
 
     try {

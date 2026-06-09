@@ -5,7 +5,7 @@ import { spawnHidden } from "./spawn.js";
 import { logger } from "../utils/logger.js";
 import { HOOK_TIMEOUTS, getTimeout } from "./hook-constants.js";
 import { SettingsDefaultsManager } from "./SettingsDefaultsManager.js";
-import { MARKETPLACE_ROOT, DATA_DIR } from "./paths.js";
+import { MARKETPLACE_ROOT, DATA_DIR, USER_SETTINGS_PATH } from "./paths.js";
 import { loadFromFileOnce } from "./hook-settings.js";
 import { validateWorkerPidFile } from "../supervisor/index.js";
 import { emitBlockingError } from "./hook-io.js";
@@ -67,7 +67,7 @@ export function getWorkerPort(): number {
     return cachedPort;
   }
 
-  const settingsPath = path.join(SettingsDefaultsManager.get('CLAUDE_MEM_DATA_DIR'), 'settings.json');
+  const settingsPath = USER_SETTINGS_PATH; // global config (Plan B3); CLAUDE_MEM_WORKER_PORT env still overrides via applyEnvOverrides
   const settings = SettingsDefaultsManager.loadFromFile(settingsPath);
   cachedPort = parseInt(settings.CLAUDE_MEM_WORKER_PORT, 10);
   return cachedPort;
@@ -78,7 +78,7 @@ export function getWorkerHost(): string {
     return cachedHost;
   }
 
-  const settingsPath = path.join(SettingsDefaultsManager.get('CLAUDE_MEM_DATA_DIR'), 'settings.json');
+  const settingsPath = USER_SETTINGS_PATH; // global config (Plan B3); CLAUDE_MEM_WORKER_HOST env still overrides via applyEnvOverrides
   const settings = SettingsDefaultsManager.loadFromFile(settingsPath);
   cachedHost = settings.CLAUDE_MEM_WORKER_HOST;
   return cachedHost;

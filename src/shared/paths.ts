@@ -5,6 +5,7 @@ import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { SettingsDefaultsManager } from './SettingsDefaultsManager.js';
 import { logger } from '../utils/logger.js';
+import { globalConfigDir, globalSettingsPath, globalEnvPath } from '../engram/global-config.js';
 
 function getDirname(): string {
   if (typeof __dirname !== 'undefined') {
@@ -20,7 +21,7 @@ export function resolveDataDir(): string {
     return process.env.CLAUDE_MEM_DATA_DIR;
   }
 
-  const defaultDataDir = join(homedir(), '.claude-mem');
+  const defaultDataDir = join(homedir(), '.engram');
   const settingsPath = join(defaultDataDir, 'settings.json');
   try {
     if (existsSync(settingsPath)) {
@@ -38,17 +39,20 @@ export function resolveDataDir(): string {
 }
 
 export const DATA_DIR = resolveDataDir();
+// Engram config split: user secrets/config (settings.json, .env) live here,
+// GLOBAL across all projects, even when DATA_DIR is per-project (Plan B2/B3).
+export const GLOBAL_CONFIG_DIR = globalConfigDir();
 export const CLAUDE_CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude');
 
-export const MARKETPLACE_ROOT = join(CLAUDE_CONFIG_DIR, 'plugins', 'marketplaces', 'thedotmack');
+export const MARKETPLACE_ROOT = join(CLAUDE_CONFIG_DIR, 'plugins', 'marketplaces', 'engram');
 
 export const ARCHIVES_DIR = join(DATA_DIR, 'archives');
 export const LOGS_DIR = join(DATA_DIR, 'logs');
 export const TRASH_DIR = join(DATA_DIR, 'trash');
 export const BACKUPS_DIR = join(DATA_DIR, 'backups');
 export const MODES_DIR = join(DATA_DIR, 'modes');
-export const USER_SETTINGS_PATH = join(DATA_DIR, 'settings.json');
-export const DB_PATH = join(DATA_DIR, 'claude-mem.db');
+export const USER_SETTINGS_PATH = globalSettingsPath();
+export const DB_PATH = join(DATA_DIR, 'engram.db');
 export const VECTOR_DB_DIR = join(DATA_DIR, 'vector-db');
 
 export const OBSERVER_SESSIONS_DIR = join(DATA_DIR, 'observer-sessions');
@@ -132,15 +136,15 @@ export const paths = {
   serverBetaPid: () => join(DATA_DIR, '.server-beta.pid'),
   serverBetaPort: () => join(DATA_DIR, '.server-beta.port'),
   serverBetaRuntime: () => join(DATA_DIR, '.server-beta.runtime.json'),
-  settings: () => join(DATA_DIR, 'settings.json'),
-  database: () => join(DATA_DIR, 'claude-mem.db'),
+  settings: () => globalSettingsPath(),
+  database: () => join(DATA_DIR, 'engram.db'),
   chroma: () => join(DATA_DIR, 'chroma'),
   combinedCerts: () => join(DATA_DIR, 'combined_certs.pem'),
   transcriptsConfig: () => join(DATA_DIR, 'transcript-watch.json'),
   transcriptsState: () => join(DATA_DIR, 'transcript-watch-state.json'),
   corpora: () => join(DATA_DIR, 'corpora'),
   supervisorRegistry: () => join(DATA_DIR, 'supervisor.json'),
-  envFile: () => join(DATA_DIR, '.env'),
+  envFile: () => globalEnvPath(),
   logsDir: () => LOGS_DIR,
   archives: () => ARCHIVES_DIR,
   trash: () => TRASH_DIR,

@@ -70,28 +70,42 @@ function removeMarketplaceDirectory(): boolean {
 }
 
 function removeCacheDirectory(): boolean {
-  const cacheDirectory = join(pluginsDirectory(), 'cache', 'thedotmack', 'claude-mem');
-  if (existsSync(cacheDirectory)) {
-    rmSync(cacheDirectory, { recursive: true, force: true });
-    return true;
+  let removed = false;
+  // Remove the current (engram) cache as well as the legacy (thedotmack) cache.
+  for (const cachePath of [
+    join(pluginsDirectory(), 'cache', 'engram', 'engram'),
+    join(pluginsDirectory(), 'cache', 'thedotmack', 'engram'),
+  ]) {
+    if (existsSync(cachePath)) {
+      rmSync(cachePath, { recursive: true, force: true });
+      removed = true;
+    }
   }
-  return false;
+  return removed;
 }
 
 function removeFromKnownMarketplaces(): void {
   const knownMarketplaces = readJsonSafe<Record<string, any>>(knownMarketplacesPath(), {});
-  if (knownMarketplaces['thedotmack']) {
-    delete knownMarketplaces['thedotmack'];
-    writeJsonFileAtomic(knownMarketplacesPath(), knownMarketplaces);
+  let changed = false;
+  for (const key of ['engram', 'thedotmack']) {
+    if (knownMarketplaces[key]) {
+      delete knownMarketplaces[key];
+      changed = true;
+    }
   }
+  if (changed) writeJsonFileAtomic(knownMarketplacesPath(), knownMarketplaces);
 }
 
 function removeFromInstalledPlugins(): void {
   const installedPlugins = readJsonSafe<Record<string, any>>(installedPluginsPath(), {});
-  if (installedPlugins.plugins?.['claude-mem@thedotmack']) {
-    delete installedPlugins.plugins['claude-mem@thedotmack'];
-    writeJsonFileAtomic(installedPluginsPath(), installedPlugins);
+  let changed = false;
+  for (const key of ['engram@engram', 'claude-mem@thedotmack']) {
+    if (installedPlugins.plugins?.[key]) {
+      delete installedPlugins.plugins[key];
+      changed = true;
+    }
   }
+  if (changed) writeJsonFileAtomic(installedPluginsPath(), installedPlugins);
 }
 
 function stripLegacyClaudeMemAlias(): void {
@@ -127,10 +141,14 @@ function stripLegacyClaudeMemAlias(): void {
 
 function removeFromClaudeSettings(): void {
   const settings = readJsonSafe<Record<string, any>>(claudeSettingsPath(), {});
-  if (settings.enabledPlugins?.['claude-mem@thedotmack'] !== undefined) {
-    delete settings.enabledPlugins['claude-mem@thedotmack'];
-    writeJsonFileAtomic(claudeSettingsPath(), settings);
+  let changed = false;
+  for (const key of ['engram@engram', 'claude-mem@thedotmack']) {
+    if (settings.enabledPlugins?.[key] !== undefined) {
+      delete settings.enabledPlugins[key];
+      changed = true;
+    }
   }
+  if (changed) writeJsonFileAtomic(claudeSettingsPath(), settings);
 }
 
 function removeStrayClaudeMemPaths(): number {
@@ -146,7 +164,7 @@ function removeStrayClaudeMemPaths(): number {
       console.warn(`[uninstall] Could not read ${npxRoot}:`, error instanceof Error ? error.message : String(error));
     }
     for (const hashDir of hashDirs) {
-      const candidate = join(npxRoot, hashDir, 'node_modules', 'claude-mem');
+      const candidate = join(npxRoot, hashDir, 'node_modules', 'engram');
       if (!existsSync(candidate)) continue;
       try {
         rmSync(candidate, { recursive: true, force: true });
@@ -187,13 +205,17 @@ function removeStrayClaudeMemPaths(): number {
     }
   }
 
-  const pluginDataDir = join(home, '.claude', 'plugins', 'data', 'claude-mem-thedotmack');
-  if (existsSync(pluginDataDir)) {
-    try {
-      rmSync(pluginDataDir, { recursive: true, force: true });
-      removedCount++;
-    } catch (error: unknown) {
-      console.warn(`[uninstall] Could not remove ${pluginDataDir}:`, error instanceof Error ? error.message : String(error));
+  for (const pluginDataDir of [
+    join(home, '.claude', 'plugins', 'data', 'engram-engram'),
+    join(home, '.claude', 'plugins', 'data', 'claude-mem-thedotmack'),
+  ]) {
+    if (existsSync(pluginDataDir)) {
+      try {
+        rmSync(pluginDataDir, { recursive: true, force: true });
+        removedCount++;
+      } catch (error: unknown) {
+        console.warn(`[uninstall] Could not remove ${pluginDataDir}:`, error instanceof Error ? error.message : String(error));
+      }
     }
   }
 
@@ -201,10 +223,10 @@ function removeStrayClaudeMemPaths(): number {
 }
 
 export async function runUninstallCommand(): Promise<void> {
-  p.intro(pc.bgRed(pc.white(' claude-mem uninstall ')));
+  p.intro(pc.bgRed(pc.white(' engram uninstall ')));
 
   if (!isPluginInstalled()) {
-    p.log.warn('claude-mem does not appear to be installed.');
+    p.log.warn('Engram does not appear to be installed.');
 
     if (process.stdin.isTTY) {
       const shouldCleanup = await p.confirm({
@@ -222,7 +244,7 @@ export async function runUninstallCommand(): Promise<void> {
     }
   } else if (process.stdin.isTTY) {
     const shouldContinue = await p.confirm({
-      message: 'Are you sure you want to uninstall claude-mem?',
+      message: 'Are you sure you want to uninstall Engram?',
       initialValue: false,
     });
 
@@ -261,7 +283,7 @@ export async function runUninstallCommand(): Promise<void> {
     }
     if (serverPlan.clearServerSettings) {
       clearServerRuntimeSettings(serverPlan.settingsKeysToClear);
-      p.log.info('Server runtime settings cleared from ~/.claude-mem/settings.json.');
+      p.log.info('Server runtime settings cleared from ~/.engram/settings.json.');
     }
   }
 
@@ -313,7 +335,7 @@ export async function runUninstallCommand(): Promise<void> {
       },
     },
     {
-      title: 'Removing stray claude-mem caches and logs',
+      title: 'Removing stray Engram caches and logs',
       task: async () => {
         const removed = removeStrayClaudeMemPaths();
         return removed > 0
@@ -359,11 +381,11 @@ export async function runUninstallCommand(): Promise<void> {
 
   p.note(
     [
-      `Your data directory at ${pc.cyan('~/.claude-mem')} was preserved.`,
-      'To remove it manually: rm -rf ~/.claude-mem',
+      `Your data directory at ${pc.cyan('~/.engram')} was preserved.`,
+      'To remove it manually: rm -rf ~/.engram',
     ].join('\n'),
     'Note',
   );
 
-  p.outro(pc.green('claude-mem has been uninstalled.'));
+  p.outro(pc.green('Engram has been uninstalled.'));
 }

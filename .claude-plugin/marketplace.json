@@ -1,18 +1,18 @@
 {
-  "name": "thedotmack",
+  "name": "engram",
   "owner": {
     "name": "Alex Newman"
   },
   "metadata": {
-    "description": "Plugins by Alex Newman (thedotmack)",
-    "homepage": "https://github.com/thedotmack/claude-mem"
+    "description": "Engram plugins",
+    "homepage": "https://github.com/guneyunus/claude-memVY"
   },
   "plugins": [
     {
-      "name": "claude-mem",
-      "version": "13.4.0",
+      "name": "engram",
+      "version": "1.0.0",
       "source": "./plugin",
-      "description": "Persistent memory system for Claude Code - context compression across sessions"
+      "description": "Engram: project-local, git-native memory for Claude Code"
     }
   ]
 }

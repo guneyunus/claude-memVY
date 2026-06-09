@@ -43,7 +43,7 @@ describe('MCP server name safety (#2473)', () => {
     expect(toolNames.length).toBeGreaterThan(5);
 
     // Worst-case qualified prefix the host applies for this plugin's server.
-    const QUALIFIED_PREFIX = 'mcp__plugin_claude-mem_mcp-search__';
+    const QUALIFIED_PREFIX = 'mcp__plugin_engram_engram__';
     for (const tool of toolNames) {
       expect(tool).not.toContain(':');
       expect(tool).not.toContain('.');

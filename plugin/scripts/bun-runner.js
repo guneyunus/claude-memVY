@@ -66,7 +66,7 @@ function isPluginDisabledInClaudeSettings() {
     const settingsPath = join(configDir, 'settings.json');
     if (!existsSync(settingsPath)) return false;
     const settings = JSON.parse(readFileSync(settingsPath, 'utf-8'));
-    return settings?.enabledPlugins?.['claude-mem@thedotmack'] === false;
+    return settings?.enabledPlugins?.['engram@engram'] === false;
   } catch {
     return false;
   }
@@ -84,6 +84,43 @@ if (args.length === 0) {
 }
 
 args[0] = fixBrokenScriptPath(args[0]);
+
+// Engram: inject the per-project runtime (DATA_DIR + worker port) from the
+// hook's cwd BEFORE spawning the worker, so the child's paths.ts freezes the
+// project-local DATA_DIR and getWorkerPort selects the project-local port.
+// SOURCE OF TRUTH for the values: src/engram/project-root.ts (mirrored in
+// ./engram-resolve.cjs). Fail-open: any error leaves env untouched so the
+// worker falls back to the global ~/.engram behavior — a hook is never broken.
+//
+// process.cwd() is the hook-invocation cwd; Claude Code sets it to the project
+// root before invoking hooks (stdin's authoritative `cwd` is read later by
+// collectStdin(), too late to influence the spawned child's frozen DATA_DIR).
+// Cost: resolveRuntimeEnv runs `git rev-parse` synchronously (~tens of ms) on
+// every hook invocation, and claimPort does one bind-probe (+ one localhost
+// /api/whoami GET when the persisted port is occupied) — a few ms. The resolved
+// root is not cached across hook processes yet.
+// Port collision (Plan B4): claimPort binds-or-increments from the deterministic
+// candidate to a free port, persists it to <dataDir>/worker.port, and re-claims
+// if a persisted port is squatted by another project (verified via /api/whoami),
+// so two projects never share a worker.
+try {
+  const mod = await import('./engram-resolve.cjs');
+  const resolveRuntimeEnv = mod.default?.resolveRuntimeEnv ?? mod.resolveRuntimeEnv;
+  const claimPort = mod.default?.claimPort ?? mod.claimPort;
+  if (typeof resolveRuntimeEnv === 'function') {
+    const rt = resolveRuntimeEnv(process.cwd());
+    if (!process.env.CLAUDE_MEM_DATA_DIR) process.env.CLAUDE_MEM_DATA_DIR = rt.dataDir;
+    if (!process.env.CLAUDE_MEM_WORKER_PORT) {
+      // Claim a real free port for this project (deterministic candidate, then
+      // increment on conflict), persisted to <dataDir>/worker.port. Falls back
+      // to the bare candidate if claimPort is unavailable.
+      const port = typeof claimPort === 'function' ? await claimPort(rt.dataDir, rt.port) : rt.port;
+      process.env.CLAUDE_MEM_WORKER_PORT = String(port);
+    }
+  }
+} catch {
+  // leave env as-is (global default); never break the hook on resolver failure
+}
 
 const bunPath = findBun();
 
@@ -145,7 +182,7 @@ if (child.stdin) {
     // Issue #2188: empty/missing stdin previously masked by `|| '{}'` fallback,
     // which silently hid WSL bash failures (e.g. hooks invoked under a broken
     // shell that never piped a payload). Surface the failure mode instead.
-    const dataDir = process.env.CLAUDE_MEM_DATA_DIR || join(homedir(), '.claude-mem');
+    const dataDir = process.env.CLAUDE_MEM_DATA_DIR || join(homedir(), '.engram');
     const payloadType = stdinData === null
       ? 'null (no data event or stream error)'
       : stdinData === undefined
